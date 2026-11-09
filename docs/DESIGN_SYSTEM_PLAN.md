@@ -85,6 +85,8 @@ flutter test test/goldens --dart-define=RUN_GOLDENS=true                    # co
   Resolver gerando o arquivo no CI a partir de um secret.
 - iOS: falta `GoogleService-Info.plist` no Xcode e a URL scheme `REVERSED_CLIENT_ID` no
   `Info.plist` (exige Mac).
+- Alerta do GitHub sobre as chaves `AIza…` de `lib/firebase_options.dart`: tratado em
+  [SECURITY_PLAN.md](SECURITY_PLAN.md). As restrições ficam para quando o build rodar.
 
 Histórico da decisão:
 - `lib/firebase_options.dart` é um placeholder que lança `UnsupportedError`. Sem ele, o app
