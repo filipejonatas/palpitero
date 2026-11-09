@@ -60,7 +60,9 @@ class _FirebaseBootstrapAppState extends State<FirebaseBootstrapApp> {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Palpitero',
-          theme: AppTheme.dark(),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: AppTheme.mode,
           home: SplashPage(
             isBusy: true,
             errorMessage: snapshot.hasError
@@ -181,7 +183,9 @@ class PalpiteroApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Palpitero',
-      theme: AppTheme.dark(),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: AppTheme.mode,
       routerConfig: router,
     );
   }

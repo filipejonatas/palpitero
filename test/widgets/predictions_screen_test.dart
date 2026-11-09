@@ -235,8 +235,14 @@ Future<void> _scrollToButton(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
+/// The match card's confirm button (not the "Salvar dia" button above it).
 Finder _confirmButtonFinder() {
-  return find.byWidgetPredicate((widget) => widget is FilledButton);
+  return find.ancestor(
+    of: find.textContaining(
+      RegExp(r'^(Confirmar palpite|Atualizar palpite|Confirmando\.\.\.)$'),
+    ),
+    matching: find.byWidgetPredicate((widget) => widget is FilledButton),
+  );
 }
 
 void _stubPredictions(

@@ -25,8 +25,8 @@ Ambiente: Flutter 3.35.1 / Dart 3.9.0 (Windows).
 - [x] `flutter pub get`, `flutter analyze`, `flutter test` rodando (registrar falhas pré-existentes).
 - [x] Firebase novo configurado (`flutterfire configure`) ou testes cobertos por mocks.
       Projeto `palpitero-620eb` (web, android, ios). Testes seguem usando mocks.
-- [~] Goldens atuais gerados/atualizados (`flutter test --update-goldens`) como referência visual.
-      3 de 4 ok; o do Login só fecha depois do Checkpoint 2 (veja 0.4).
+- [x] Goldens atuais gerados/atualizados (`flutter test --update-goldens`) como referência visual.
+      3 de 4 ok no CP0; o do Login fechou no Checkpoint 2 (veja 0.4).
 - [ ] Capturas de tela de cada tela (antes) em `docs/before/`.
 
 ### Passo a passo
@@ -131,11 +131,38 @@ Histórico da decisão:
 
 ## Checkpoint 2: Fonte e fundação do tema
 **Objetivo:** a tipografia realmente renderizar como projetada.
-- [ ] Declarar a Inter (assets em `assets/fonts/` + `pubspec.yaml`, ou `google_fonts`).
+- [x] Declarar a Inter (assets em `assets/fonts/` + `pubspec.yaml`, ou `google_fonts`).
 - [ ] Conferir em aparelho real que a fonte carregou.
-- [ ] Revisar `ColorScheme` completo (hoje só alguns papéis definidos).
+- [x] Revisar `ColorScheme` completo (hoje só alguns papéis definidos).
+- [x] `AppTheme.light()` criado e ligado no `MaterialApp` (`theme`/`darkTheme`/`themeMode`).
+- [x] Todos os goldens regenerados com a fonte real (novo baseline, inclusive o Login).
 
-**Arquivos:** `pubspec.yaml`, `lib/theme/app_theme.dart`.
+**Arquivos:** `pubspec.yaml`, `assets/fonts/`, `lib/theme/app_theme.dart`, `lib/main.dart`.
+
+**Decisões e achados**
+- **Fonte empacotada, não `google_fonts`:** funciona offline, no primeiro frame e nos testes
+  (`loadAppFonts()` lê o `FontManifest`). Inter 4.1 estática (`rsms/inter`), licença OFL em
+  `assets/fonts/OFL.txt`. Pesos 400/500/700/900 da escala + 800, que as telas ainda usam
+  (9 usos); remover o arquivo `Inter-ExtraBold.ttf` ao fim do CP4. Custo: ~2 MB.
+- **`themeMode` fica `dark` por enquanto** (`AppTheme.mode`). O tema claro já existe, mas as
+  telas leem `AppColors` estático (escuro); ligar `ThemeMode.system` agora quebraria o visual
+  no claro. Vira `system` no fim do CP4.
+- **`ColorScheme` completo**, construído de uma paleta privada por tema (valores do
+  `DESIGN.md`). Antes, `outline`/`outlineVariant` caíam em branco puro e
+  `secondaryContainer` no verde `#00C896`. Mudanças visíveis (intencionais):
+  - `SegmentedButton` (pênaltis em `predictions_screen`): seleção verde vira lima, borda
+    branca vira `borderStrong`.
+  - `colorScheme.error` passa de `live` (`#FF3B30`) para `loss` (`#FF6B5E`); bordas de erro
+    em inputs definidas.
+  - `surfaceTint` transparente (sem véu lima em superfícies elevadas); `surfaceContainerHigh*`
+    = `surfaceElevated` (switch, diálogos, menus).
+  - Texto de `onPrimary` passa de `#000000` para `onBrand` `#0D0D0D`.
+- **Teste frágil corrigido:** em `predictions_screen_test.dart`, o finder do botão de
+  confirmar pegava qualquer `FilledButton`. Com a fonte real o botão "Salvar dia" também
+  fica na árvore; o finder agora se ancora no rótulo do botão. O app não mudou.
+- Novo `test/theme/app_theme_test.dart`: Inter em todos os estilos, scheme sem contornos
+  brancos, e um teste que falha se a fonte cair no fallback Ahem.
+- Resultado: `analyze` só com o aviso conhecido; **71 passando, 4 pulados**; 4/4 goldens ok.
 
 ## Checkpoint 3: Tokens
 **Objetivo:** todo valor visual vive em um só lugar.
@@ -192,6 +219,7 @@ Histórico da decisão:
 - [ ] `DESIGN.md`: princípios, tokens, quando usar cada componente, o que nunca fazer.
 - [ ] Checklist de PR para telas novas.
 - [ ] Rodar o lint no CI (`.github/`).
+- [ ] Ligar `ThemeMode.system` (`AppTheme.mode`) e remover `Inter-ExtraBold.ttf` se o CP4 não tiver feito.
 
 ## Checkpoint 9 (opcional): Performance ligada ao design
 **Objetivo:** ganhos de desempenho identificados na auditoria, depois do design estável.
