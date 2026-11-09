@@ -1,0 +1,34 @@
+{
+  "name": "palpitero-api",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "nest start --watch",
+    "build": "nest build",
+    "lint": "tsc --noEmit",
+    "test:playoff": "npm run build && node --test dist/playoffs/playoffs.service.spec.js",
+    "advance:playoff": "node ../scripts/advance-playoff-round.cjs",
+    "recalculate:leaderboard": "node ../scripts/recalculate-leaderboard.cjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "firebase-admin": "^14.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.10",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  }
+}

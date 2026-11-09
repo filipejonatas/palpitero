@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://<SEU_PROJETO>.web.app",
+      "https://<SEU_PROJETO>.firebaseapp.com"
+    ],
+    "method": ["GET", "HEAD"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]
