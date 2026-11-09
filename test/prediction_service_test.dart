@@ -89,12 +89,7 @@ void main() {
       expect(capturedRequest.url.path, '/predictions/bulk');
       expect(jsonDecode(capturedRequest.body), {
         'predictions': [
-          {
-            'fixtureId': 101,
-            'pick': 'home',
-            'homeScore': 2,
-            'awayScore': 1,
-          },
+          {'fixtureId': 101, 'pick': 'home', 'homeScore': 2, 'awayScore': 1},
         ],
       });
     });

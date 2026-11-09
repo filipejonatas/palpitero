@@ -168,9 +168,8 @@ class PalpiteroApp extends StatelessWidget {
               routes: [
                 GoRoute(
                   path: '/results',
-                  builder: (context, state) => ResultsScreen(
-                    sessionController: sessionController,
-                  ),
+                  builder: (context, state) =>
+                      ResultsScreen(sessionController: sessionController),
                 ),
               ],
             ),

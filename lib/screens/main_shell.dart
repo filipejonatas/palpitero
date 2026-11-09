@@ -70,9 +70,7 @@ class MainShell extends StatelessWidget {
                   _BottomNavItem(
                     tooltip: 'Resultados',
                     icon: PhosphorIcons.chartBar(),
-                    activeIcon: PhosphorIcons.chartBar(
-                      PhosphorIconsStyle.fill,
-                    ),
+                    activeIcon: PhosphorIcons.chartBar(PhosphorIconsStyle.fill),
                     isActive: navigationShell.currentIndex == 4,
                     onTap: () => _goBranch(4),
                   ),

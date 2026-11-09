@@ -25,8 +25,7 @@ class PlayoffBracket {
       deadlineAt: json['deadlineAt'] as String?,
       participants: (json['participants'] as List<dynamic>? ?? [])
           .map(
-            (item) =>
-                PlayoffParticipant.fromJson(item as Map<String, dynamic>),
+            (item) => PlayoffParticipant.fromJson(item as Map<String, dynamic>),
           )
           .toList(),
       matches: (json['matches'] as List<dynamic>? ?? [])

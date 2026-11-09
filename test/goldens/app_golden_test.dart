@@ -5,6 +5,7 @@ import 'package:palpitero/models/match_prediction.dart';
 import 'package:palpitero/theme/app_theme.dart';
 import 'package:palpitero/widgets/match_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -33,7 +34,11 @@ void main() {
     testGoldens('LoginPage matches screenshot', (tester) async {
       // Arrange
       await tester.pumpWidgetBuilder(
-        LoginPage(sessionController: TestSessionController(currentUser: null)),
+        ProviderScope(
+          child: LoginPage(
+            sessionController: TestSessionController(currentUser: null),
+          ),
+        ),
         wrapper: materialAppWrapper(theme: AppTheme.dark()),
         surfaceSize: const Size(390, 844),
       );

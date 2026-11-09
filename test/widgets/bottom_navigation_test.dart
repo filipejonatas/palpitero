@@ -30,11 +30,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Leaderboard'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Profile'));
+      await tester.tap(find.byTooltip('Home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Fase de grupos'), findsOneWidget);
+
+      // Perfil não é uma aba: abre pelo botão do cabeçalho da Home.
+      await tester.tap(find.byTooltip('Perfil'));
       await tester.pumpAndSettle();
       expect(find.text('Profile'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Home'));
+      await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Fase de grupos'), findsOneWidget);
     });

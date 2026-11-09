@@ -2,6 +2,8 @@
 
 Backend Nest para centralizar integracoes externas, incluindo a API WC2026.
 
+Os comandos abaixo partem da raiz do projeto; `cd api` acessa a pasta do backend. Na seção de deploy, `.env.example` refere-se a `api/.env.example`.
+
 ## Rodar localmente
 
 ```powershell

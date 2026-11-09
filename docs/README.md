@@ -2,6 +2,16 @@
 
 Projeto Flutter para palpites da Copa do Mundo com login Firebase/Google.
 
+## Documentação
+
+- [API e backend](API.md)
+- [Plano do design system](DESIGN_SYSTEM_PLAN.md)
+- [Plano de performance](PERFORMANCE_PLAN.md)
+- [Checklist de release](RELEASE_CHECKLIST.md)
+- [Tela de abertura do iOS](IOS_LAUNCH_SCREEN.md)
+
+Execute os comandos desta documentação a partir da raiz do projeto, salvo indicação contrária.
+
 ## Rodar no navegador
 
 Para subir o backend local e o Flutter web juntos:

@@ -83,5 +83,26 @@
         ]
       }
     ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "palpitero-620eb",
+          "appId": "1:962968633087:android:aac2228da2ee6c524356ca",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "palpitero-620eb",
+          "configurations": {
+            "android": "1:962968633087:android:aac2228da2ee6c524356ca",
+            "ios": "1:962968633087:ios:806ff8e63745aaa84356ca",
+            "web": "1:962968633087:web:0976259e54d974f44356ca"
+          }
+        }
+      }
+    }
   }
 }
