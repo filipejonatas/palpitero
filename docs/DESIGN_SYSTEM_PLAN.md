@@ -4,8 +4,8 @@ Objetivo: ter uma identidade visual única e consistente, com tokens e component
 reutilizáveis, para criar telas novas sem quebrar o visual.
 
 **Regras de trabalho**
-- Um checkpoint = uma branch (`ds/cp-N-nome`) = um PR/commit revisável.
-- Ao fim de cada checkpoint: `flutter analyze`, `flutter test` e goldens passando.
+- Um checkpoint = um commit direto na `main` (mensagem `ds(cp-N): ...`). Branch só se o checkpoint for longo (ex.: CP4, CP6).
+- Antes de cada push: `flutter analyze`, `dart format`, `flutter test` e goldens passando.
 - Não misturar refatoração visual com mudança de comportamento.
 - Marcar as caixas conforme for concluindo.
 
@@ -20,7 +20,7 @@ reutilizáveis, para criar telas novas sem quebrar o visual.
 
 ## Checkpoint 0: Baseline e rede de segurança
 **Objetivo:** saber que o app e os testes funcionam antes de mexer.
-**Branch:** `ds/cp-0-baseline` · Ambiente: Flutter 3.35.1 / Dart 3.9.0 (Windows).
+Ambiente: Flutter 3.35.1 / Dart 3.9.0 (Windows).
 
 - [x] `flutter pub get`, `flutter analyze`, `flutter test` rodando (registrar falhas pré-existentes).
 - [x] Firebase novo configurado (`flutterfire configure`) ou testes cobertos por mocks.
@@ -105,19 +105,29 @@ Histórico da decisão:
 
 **0.7 Fechar o checkpoint**
 - `flutter analyze`, `dart format`, `flutter test` e os goldens (exceto o Login) passando.
-- Commit na branch `ds/cp-0-baseline` e PR para `main`.
+- Commit na `main` (feito em `b566b91`).
 
 **Pronto quando:** análise limpa e testes verdes, ou lista de falhas conhecidas anotada.
 
 ## Checkpoint 1: Identidade e decisões de base
 **Objetivo:** decidir o que o Palpitero é visualmente, antes de codar tokens.
-- [ ] Definir paleta final (manter fundo `#0D0D0D` e lima `#C6F135`, ou redefinir).
-- [ ] Definir tom: raios, densidade, peso tipográfico (hoje `w900` é muito usado).
-- [ ] Definir cores semânticas: `success/win`, `loss`, `pending`, `live`, `gold`.
-- [ ] Decidir tema escuro apenas ou claro + escuro.
-- [ ] Opcional: explorar telas com Stitch/Claude como referência visual.
+- [x] Definir paleta final: mantidos fundo `#0D0D0D` e lima `#C6F135` como única cor de marca.
+- [x] Definir tom: raios em escala (8/14/24/32/pill), densidade confortável, hierarquia de
+      peso (`w900` só em números e destaque; `w700` títulos; `w500` rótulos; `w400` corpo).
+- [x] Definir cores semânticas: `success/win`, `loss/error`, `pending`, `live`, `gold`,
+      com contraste WCAG AA verificado nos dois temas.
+- [x] Decidir tema: **claro + escuro**, padrão seguindo o sistema.
+- [ ] Opcional: explorar telas com Stitch/Claude como referência visual (não feito).
 
-**Entrega:** seção "Identidade" neste arquivo (ou `DESIGN.md`) com paleta e regras.
+**Entrega:** ✅ seção "Identidade" em [`DESIGN.md`](DESIGN.md).
+
+**Impacto de "claro + escuro" nos próximos checkpoints**
+- CP2: criar `AppTheme.light()` e `themeMode: ThemeMode.system` no `MaterialApp`.
+- CP3: tokens de cor por tema (`ThemeExtension` com `lerp`), não `static const`; `AppColors`
+  estático deixa de ser usado nas telas.
+- CP4: telas não podem usar `Colors.white/black` direto (quebra no claro).
+- CP7: goldens e teste de contraste nos dois temas.
+- Fora do design system: seletor manual de tema no Perfil (mudança de comportamento).
 
 ## Checkpoint 2: Fonte e fundação do tema
 **Objetivo:** a tipografia realmente renderizar como projetada.
