@@ -431,6 +431,8 @@ não tem duplicação e não fazia parte do escopo.
   proporção `size * .22` do `TeamFlag`.
 - **O código já estava limpo:** a primeira rodada só achou o `TeamFlag`. O lint agora impede a
   volta.
+- **`CLAUDE.md` na raiz** aponta assistentes de IA para o `DESIGN.md`, resume as regras e lista
+  a verificação antes do commit.
 - **Checklist de PR** em `.github/pull_request_template.md`: lint, tokens, tipografia, lima no
   claro, componentes, catálogo/golden, dois temas, goldens locais.
 - Resultado: `analyze` limpo; lint limpo; **224 passando, 56 pulados**; 56/56 goldens ok.
