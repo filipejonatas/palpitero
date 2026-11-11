@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:vector_graphics/vector_graphics.dart';
 
 import '../design_system/design_system.dart';
 
@@ -26,8 +27,10 @@ class TeamFlag extends StatelessWidget {
         children: [
           _FlagFallback(teamName: teamName, size: size),
           ClipOval(
-            child: SvgPicture.asset(
-              flagAssetPathForCode(code),
+            // Flags are compiled to vector_graphics at build time (see the
+            // transformer in pubspec.yaml), so they load as bytes.
+            child: SvgPicture(
+              AssetBytesLoader(flagAssetPathForCode(code)),
               width: size,
               height: size,
               fit: BoxFit.cover,

@@ -69,72 +69,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screen,
-            AppSpacing.md,
-            AppSpacing.screen,
-            AppSpacing.bottomNavClearance,
-          ),
-          children: [
-            _UserSummary(user: user),
-            const SizedBox(height: AppSpacing.md),
-            AppButton.outline(
-              label: _isPhotoUploading ? 'Enviando foto...' : 'Alterar foto',
-              icon: PhosphorIcon(PhosphorIcons.camera()),
-              isLoading: _isPhotoUploading,
-              onPressed: widget.sessionController.isLoading
-                  ? null
-                  : _pickAndUploadPhoto,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.md,
+                AppSpacing.screen,
+                AppSpacing.bottomNavClearance,
+              ),
+              sliver: SliverMainAxisGroup(
+                slivers: [
+                  SliverList.list(
+                    children: [
+                      _UserSummary(user: user),
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton.outline(
+                        label: _isPhotoUploading
+                            ? 'Enviando foto...'
+                            : 'Alterar foto',
+                        icon: PhosphorIcon(PhosphorIcons.camera()),
+                        isLoading: _isPhotoUploading,
+                        onPressed: widget.sessionController.isLoading
+                            ? null
+                            : _pickAndUploadPhoto,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      ProfileStatsGrid(
+                        entry: _userStats,
+                        isLoading: _isStatsLoading,
+                      ),
+                      if (_statsError != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        AppErrorState(message: _statsError!),
+                      ],
+                      const SizedBox(height: AppSpacing.xxl),
+                      const AppSectionHeader(title: 'Nick no ranking'),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppTextField(
+                        controller: _nickController,
+                        maxLength: 24,
+                        hintText: 'Como voce quer aparecer?',
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+                      AppButton(
+                        label: widget.sessionController.isLoading
+                            ? 'Salvando...'
+                            : 'Salvar perfil',
+                        icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
+                        isLoading: widget.sessionController.isLoading,
+                        onPressed: _save,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton.outline(
+                        label: 'Sair',
+                        icon: PhosphorIcon(PhosphorIcons.signOut()),
+                        onPressed: widget.sessionController.isLoading
+                            ? null
+                            : widget.sessionController.signOut,
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+                      const AppSectionHeader(title: 'Historico'),
+                      const SizedBox(height: AppSpacing.md),
+                      if (_isStatsLoading)
+                        const AppLoading(
+                          padding: EdgeInsets.all(AppSpacing.xxl),
+                        )
+                      else if (_history.isEmpty)
+                        const AppEmptyState(
+                          message:
+                              'Nenhum palpite registrado no backend ainda.',
+                        ),
+                    ],
+                  ),
+                  if (!_isStatsLoading)
+                    // One tile per prediction (up to every match of the
+                    // tournament): build lazily.
+                    SliverList.builder(
+                      itemCount: _history.length,
+                      itemBuilder: (context, index) {
+                        final item = _history[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: PredictionTile.history(
+                            match: item.match,
+                            prediction: item.prediction,
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            ProfileStatsGrid(entry: _userStats, isLoading: _isStatsLoading),
-            if (_statsError != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              AppErrorState(message: _statsError!),
-            ],
-            const SizedBox(height: AppSpacing.xxl),
-            const AppSectionHeader(title: 'Nick no ranking'),
-            const SizedBox(height: AppSpacing.sm),
-            AppTextField(
-              controller: _nickController,
-              maxLength: 24,
-              hintText: 'Como voce quer aparecer?',
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            AppButton(
-              label: widget.sessionController.isLoading
-                  ? 'Salvando...'
-                  : 'Salvar perfil',
-              icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
-              isLoading: widget.sessionController.isLoading,
-              onPressed: _save,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppButton.outline(
-              label: 'Sair',
-              icon: PhosphorIcon(PhosphorIcons.signOut()),
-              onPressed: widget.sessionController.isLoading
-                  ? null
-                  : widget.sessionController.signOut,
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            const AppSectionHeader(title: 'Historico'),
-            const SizedBox(height: AppSpacing.md),
-            if (_isStatsLoading)
-              const AppLoading(padding: EdgeInsets.all(AppSpacing.xxl))
-            else if (_history.isEmpty)
-              const AppEmptyState(
-                message: 'Nenhum palpite registrado no backend ainda.',
-              )
-            else
-              for (final item in _history) ...[
-                PredictionTile.history(
-                  match: item.match,
-                  prediction: item.prediction,
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
           ],
         ),
       ),

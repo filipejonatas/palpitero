@@ -61,60 +61,93 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
       ),
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screen,
-            AppSpacing.md,
-            AppSpacing.screen,
-            AppSpacing.bottomNavClearance,
-          ),
-          children: [
-            const AppPageHeader(
-              eyebrow: 'Mata-mata',
-              title: 'Seus palpites',
-              subtitle: 'Ajuste o placar de 0 a 9 antes da bola rolar.',
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            if (_isLoading)
-              const AppLoading()
-            else ...[
-              if (_matches.isEmpty)
-                const AppEmptyState(message: 'Nenhum jogo encontrado.')
-              else ...[
-                AppButton(
-                  label: _isSavingAll ? 'Salvando palpites...' : 'Salvar dia',
-                  icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
-                  isLoading: _isSavingAll,
-                  onPressed: _canSaveAll ? _saveAllPredictions : null,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                RoundHeader(label: visibleDay!.label),
-                const SizedBox(height: AppSpacing.md),
-                for (final match in visibleDay.matches)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: PredictionCard(
-                      key: ValueKey(match.fixtureId),
-                      match: match,
-                      draftPrediction: _drafts[match.fixtureId],
-                      savedPrediction: _picks[match.fixtureId],
-                      isSaving: _savingFixtureId == match.fixtureId,
-                      isLocked: !match.isPredictionOpen(),
-                      onDraftChanged: (prediction) {
-                        _drafts[match.fixtureId] = prediction;
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.md,
+                AppSpacing.screen,
+                AppSpacing.bottomNavClearance,
+              ),
+              sliver: SliverMainAxisGroup(
+                slivers: [
+                  SliverList.list(
+                    children: [
+                      const AppPageHeader(
+                        eyebrow: 'Mata-mata',
+                        title: 'Seus palpites',
+                        subtitle:
+                            'Ajuste o placar de 0 a 9 antes da bola rolar.',
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      if (_isLoading)
+                        const AppLoading()
+                      else ...[
+                        if (_matches.isEmpty)
+                          const AppEmptyState(
+                            message: 'Nenhum jogo encontrado.',
+                          )
+                        else ...[
+                          AppButton(
+                            label: _isSavingAll
+                                ? 'Salvando palpites...'
+                                : 'Salvar dia',
+                            icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
+                            isLoading: _isSavingAll,
+                            onPressed: _canSaveAll ? _saveAllPredictions : null,
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
+                          RoundHeader(label: visibleDay!.label),
+                          const SizedBox(height: AppSpacing.md),
+                        ],
+                      ],
+                    ],
+                  ),
+                  if (!_isLoading && visibleDay != null) ...[
+                    // Lazy: only the cards on screen are built. A card that
+                    // scrolls away is rebuilt from _drafts, which every edit
+                    // updates, so no draft is lost.
+                    SliverList.builder(
+                      itemCount: visibleDay.matches.length,
+                      itemBuilder: (context, index) {
+                        final match = visibleDay.matches[index];
+                        return Padding(
+                          key: ValueKey(match.fixtureId),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child:
+                              PredictionCard(
+                                    match: match,
+                                    draftPrediction: _drafts[match.fixtureId],
+                                    savedPrediction: _picks[match.fixtureId],
+                                    isSaving:
+                                        _savingFixtureId == match.fixtureId,
+                                    isLocked: !match.isPredictionOpen(),
+                                    onDraftChanged: (prediction) {
+                                      _drafts[match.fixtureId] = prediction;
+                                    },
+                                    onSave: (prediction) =>
+                                        _savePrediction(match, prediction),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 220.ms)
+                                  .slideY(begin: .06),
+                        );
                       },
-                      onSave: (prediction) =>
-                          _savePrediction(match, prediction),
-                    ).animate().fadeIn(duration: 220.ms).slideY(begin: .06),
-                  ),
-                if (matchDays.length > 1)
-                  DaySelector(
-                    index: _dayIndex,
-                    count: matchDays.length,
-                    onChanged: (index) => setState(() => _dayIndex = index),
-                  ),
-              ],
-            ],
+                    ),
+                    if (matchDays.length > 1)
+                      SliverToBoxAdapter(
+                        child: DaySelector(
+                          index: _dayIndex,
+                          count: matchDays.length,
+                          onChanged: (index) =>
+                              setState(() => _dayIndex = index),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),

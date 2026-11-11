@@ -439,8 +439,63 @@ não tem duplicação e não fazia parte do escopo.
 
 ## Checkpoint 9 (opcional): Performance ligada ao design
 **Objetivo:** ganhos de desempenho identificados na auditoria, depois do design estável.
-- [ ] `GoRouter` criado uma vez (hoje recriado no `build` de `PalpiteroApp`).
-- [ ] Listas de jogos com `ListView.builder`/slivers.
-- [ ] Bandeiras SVG (48 arquivos, 484 KB) otimizadas ou convertidas para WebP/PNG.
-- [ ] Avaliar o `BackdropFilter` da barra de navegação.
-- [ ] Medir antes e depois em aparelho real (DevTools, modo profile).
+- [x] `GoRouter` criado uma vez (hoje recriado no `build` de `PalpiteroApp`).
+- [x] Listas de jogos com `ListView.builder`/slivers.
+- [x] Bandeiras SVG (48 arquivos, 484 KB) otimizadas ou convertidas para WebP/PNG.
+- [x] Avaliar o `BackdropFilter` da barra de navegação.
+- [ ] Medir antes e depois em aparelho real (DevTools, modo profile). Exige aparelho; roteiro abaixo.
+
+**Decisões e achados**
+- **`GoRouter` era um bug, não só custo:** `PalpiteroApp` virou `StatefulWidget` e cria o
+  router uma vez (`late` no `State`; recria só se o `SessionController` mudar, e faz
+  `dispose`). Antes, qualquer rebuild do app (ex.: o `ProviderScope` acima reconstruir) criava
+  um router novo e **voltava a navegação para `/splash`**. Novo teste em
+  `bottom_navigation_test.dart` (rebuild mantém o Ranking aberto) falha no código antigo.
+- **Listas preguiçosas:** Home, Palpites, Resultados, histórico do Perfil e a sheet de palpites
+  dos Resultados viram `CustomScrollView` com `SliverList.builder` para os itens. Os de maior
+  ganho são o histórico do Perfil e a sheet (crescem com o torneio e com o bolão); as listas
+  por dia têm poucos jogos, mas seguem o mesmo esqueleto (documentado no `DESIGN.md`, "Tela
+  nova"). Ranking e mata-mata ficaram como estão: o Ranking já pagina e o mata-mata mostra um
+  confronto por vez.
+  - Risco tratado: o `PredictionCard` tem estado (placar em edição). Com o builder, o card que
+    sai da tela é descartado; o rascunho sobrevive porque cada edição já ia para `_drafts`.
+    Novo teste em `predictions_screen_test.dart` edita, rola até o card ser descartado, volta
+    e confere o placar.
+  - A animação de entrada (`fadeIn`/`slideY`) roda de novo quando um card descartado volta à
+    tela. Com poucos jogos por dia, quase não acontece.
+- **Bandeiras pré-compiladas, não WebP/PNG:** o `pubspec.yaml` passa `assets/flags/` pelo
+  transformer do `vector_graphics_compiler` (formato binário, sem parse de XML em runtime);
+  o `TeamFlag` carrega com `AssetBytesLoader`. Continua vetorial (nítido em qualquer DPR) e
+  bandeira nova é só soltar o `.svg`. Novas dependências: `vector_graphics` (já vinha pelo
+  `flutter_svg`) e `vector_graphics_compiler` (dev).
+  - `--use-half-precision-control-points`: sem ele, o binário ficava **maior** que o SVG
+    (640 KB vs 429 KB). Com ele, os goldens só mudam no anti-aliasing da borda das bandeiras.
+  - `svgo` testado e descartado: −6% no SVG, não muda o binário.
+
+  | Bandeiras (48) | SVG (antes) | Compilado (depois) |
+  |---|---|---|
+  | Tamanho bruto | 429 KB | 365 KB |
+  | Comprimido (gzip, aprox. APK/web) | 126 KB | 181 KB |
+  | Carregar as 48 (teste, JIT, desktop) | 106 ms | 73 ms |
+
+  O tempo é do ambiente de teste e serve só de comparação; o número real sai da medição em
+  aparelho. O preço é +55 KB comprimidos no pacote.
+- **`BackdropFilter` mantido:** um só filtro, recortado pelo `ClipRRect` na área da barra
+  (~360×70), com blur 10. Com `AppOpacity.glass` (.78), sem o blur o conteúdo que passa por
+  baixo fica nítido e ruidoso através da barra; trocar por fundo opaco é mudança visual. Fica
+  como está até a medição: se no Android de entrada o thread de raster passar de ~8 ms por
+  quadro ao rolar a Home, trocar o blur por `surface` opaco (sem `BackdropFilter`).
+
+**Medição em aparelho (pendente)**
+```sh
+flutter run --profile   # Android de entrada, de preferência
+```
+- DevTools → Performance: rolar Home e Palpites com o overlay de desempenho ligado
+  (raster/UI por quadro; meta < 16 ms, alvo de folga 8 ms) e abrir a aba Palpites a frio
+  (primeiras bandeiras na tela).
+- Comparar com o commit anterior ao CP9 (`0308b00`) nos mesmos passos.
+- `flutter build apk --analyze-size` para o tamanho real das bandeiras no pacote.
+
+**Testes**
+- Resultado: `analyze` limpo; lint limpo; **226 passando, 56 pulados**; 56/56 goldens ok
+  (8 regenerados: `MatchCard`, `PredictionCard` e status, só borda das bandeiras).

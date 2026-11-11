@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:palpitero/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,6 +43,29 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Fase de grupos'), findsOneWidget);
+    });
+
+    testWidgets('keeps the current route when the app rebuilds', (
+      tester,
+    ) async {
+      // Arrange
+      final sessionController = TestSessionController();
+      Widget app() => ProviderScope(
+        child: PalpiteroApp(sessionController: sessionController),
+      );
+      await tester.pumpWidget(app());
+      await tester.tap(find.textContaining('Come'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Ranking'));
+      await tester.pumpAndSettle();
+
+      // Act: a new widget instance with the same controller (as after a
+      // theme change) must not rebuild the router.
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Leaderboard'), findsOneWidget);
     });
   });
 }

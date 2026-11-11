@@ -220,7 +220,7 @@ componentes base.
 |---|---|
 | `MatchCard` | Qualquer jogo: bandeiras, placar (ou "VS") e status. O que muda por tela vai no `footer`. |
 | `MatchInfoRow` | Linha de rodapé do `MatchCard`: ícone + texto + `trailing` (rodada, ação). |
-| `TeamFlag` | Bandeira circular a partir do nome do time (`countryCodeForTeam`). |
+| `TeamFlag` | Bandeira circular a partir do nome do time (`countryCodeForTeam`). Os SVGs de `assets/flags/` são compilados no build (`vector_graphics_compiler`, veja o `pubspec.yaml`): carregue com `AssetBytesLoader`, nunca `SvgPicture.asset`. Bandeira nova: só soltar o `.svg` na pasta. |
 | `MatchStatusChip` / `PlayoffStatusBadge` | Status de jogo (API: `LIVE`, `FT`, `NS`) / de confronto (`live`, `finished`, `pending`). Mesmos tons de `AppBadge`. |
 | `RoundHeader` | Rótulo do dia ou da rodada entre dois divisores, acima da lista de jogos. |
 | `DaySelector` | "Dia N de M" com setas, abaixo da lista de jogos do dia. |
@@ -293,6 +293,10 @@ Regras:
 2. **Esqueleto:** `Scaffold` com `ListView`/`Column` e padding
    `EdgeInsets.fromLTRB(AppSpacing.screen, …, AppSpacing.screen, AppSpacing.bottomNavClearance)`
    em telas com a barra de navegação (`screenAuth` em Splash/Login). Topo com `AppPageHeader`.
+   Lista que cresce com os dados (jogos, palpites, histórico): `CustomScrollView` com
+   `SliverPadding` → `SliverMainAxisGroup` → `SliverList.list` (cabeçalho) +
+   `SliverList.builder` (itens), como em Home, Palpites e Perfil. Item com estado (rascunho)
+   guarda esse estado na tela, porque o builder descarta o card que sai da tela.
 3. **Blocos:** procure primeiro nas tabelas de [Componentes](#componentes) e
    [Componentes de domínio](#componentes-de-domínio). Se nada servir, amplie um componente
    existente; só então crie um novo em `lib/widgets/` ou `lib/design_system/`.

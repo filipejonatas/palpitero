@@ -48,53 +48,75 @@ class _ResultsScreenState extends State<ResultsScreen> {
       appBar: AppBar(title: const Text('Matches')),
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screen,
-            AppSpacing.md,
-            AppSpacing.screen,
-            AppSpacing.bottomNavClearance,
-          ),
-          children: [
-            const AppPageHeader(
-              title: 'Calendario oficial',
-              subtitle: 'Placares e status da fase de grupos em tempo real.',
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.md,
+                AppSpacing.screen,
+                AppSpacing.bottomNavClearance,
+              ),
+              sliver: SliverMainAxisGroup(
+                slivers: [
+                  SliverList.list(
+                    children: [
+                      const AppPageHeader(
+                        title: 'Calendario oficial',
+                        subtitle:
+                            'Placares e status da fase de grupos em tempo real.',
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      if (_isLoading)
+                        const AppLoading()
+                      else if (_matches.isEmpty)
+                        const AppEmptyState(
+                          message: 'Nenhum resultado encontrado.',
+                        )
+                      else ...[
+                        RoundHeader(label: visibleDay!.label),
+                        const SizedBox(height: AppSpacing.md),
+                      ],
+                    ],
+                  ),
+                  if (!_isLoading && visibleDay != null) ...[
+                    // Lazy: only the cards on screen are built.
+                    SliverList.builder(
+                      itemCount: visibleDay.matches.length,
+                      itemBuilder: (context, index) {
+                        final match = visibleDay.matches[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child:
+                              MatchCard(
+                                    match: match,
+                                    footer: _ResultActions(
+                                      match: match,
+                                      onOpenPredictions:
+                                          _canOpenPredictions(match)
+                                          ? () => _openPredictionResults(match)
+                                          : null,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 220.ms)
+                                  .slideY(begin: .06, end: 0),
+                        );
+                      },
+                    ),
+                    if (matchDays.length > 1)
+                      SliverToBoxAdapter(
+                        child: DaySelector(
+                          index: _dayIndex,
+                          count: matchDays.length,
+                          onChanged: (index) =>
+                              setState(() => _dayIndex = index),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            if (_isLoading)
-              const AppLoading()
-            else if (_matches.isEmpty)
-              const AppEmptyState(message: 'Nenhum resultado encontrado.')
-            else ...[
-              RoundHeader(label: visibleDay!.label),
-              const SizedBox(height: AppSpacing.md),
-              for (final match in visibleDay.matches)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child:
-                      MatchCard(
-                            match: match,
-                            footer: _ResultActions(
-                              match: match,
-                              onOpenPredictions:
-                                  widget.sessionController?.currentUser ==
-                                          null ||
-                                      !match.isFinished
-                                  ? null
-                                  : () => _openPredictionResults(match),
-                            ),
-                          )
-                          .animate()
-                          .fadeIn(duration: 220.ms)
-                          .slideY(begin: .06, end: 0),
-                ),
-              if (matchDays.length > 1)
-                DaySelector(
-                  index: _dayIndex,
-                  count: matchDays.length,
-                  onChanged: (index) => setState(() => _dayIndex = index),
-                ),
-            ],
           ],
         ),
       ),
@@ -102,6 +124,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   List<MatchDay> get _matchDays => groupMatchesByKickoffLabel(_matches);
+
+  bool _canOpenPredictions(MatchPrediction match) =>
+      widget.sessionController?.currentUser != null && match.isFinished;
 
   Future<void> _loadResults() async {
     try {
@@ -236,29 +261,35 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
               initialChildSize: .72,
               minChildSize: .35,
               maxChildSize: .9,
-              builder: (context, controller) => ListView(
+              builder: (context, controller) => CustomScrollView(
                 controller: controller,
-                children: [
-                  Text(
-                    '${result.homeTeam} ${result.homeScore} x ${result.awayScore} ${result.awayTeam}',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '${result.predictions.length} palpites salvos',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (result.predictions.isEmpty)
-                    const AppEmptyState(
-                      message: 'Nenhum palpite salvo para este jogo.',
-                    )
-                  else
-                    for (final prediction in result.predictions)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: PredictionTile.public(prediction),
+                slivers: [
+                  SliverList.list(
+                    children: [
+                      Text(
+                        '${result.homeTeam} ${result.homeScore} x ${result.awayScore} ${result.awayTeam}',
+                        style: theme.textTheme.titleLarge,
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        '${result.predictions.length} palpites salvos',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (result.predictions.isEmpty)
+                        const AppEmptyState(
+                          message: 'Nenhum palpite salvo para este jogo.',
+                        ),
+                    ],
+                  ),
+                  // One tile per player: grows with the pool, so build lazily.
+                  SliverList.builder(
+                    itemCount: result.predictions.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: PredictionTile.public(result.predictions[index]),
+                    ),
+                  ),
                 ],
               ),
             );

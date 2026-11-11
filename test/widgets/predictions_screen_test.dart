@@ -211,6 +211,53 @@ void main() {
       ).called(1);
       expect(find.text('Palpite salvo.'), findsOneWidget);
     });
+
+    testWidgets('keeps a draft when its card scrolls away and back', (
+      tester,
+    ) async {
+      // Arrange: a long day, so the first card leaves the lazy list.
+      const teams = ['Japan', 'Spain', 'Mexico', 'Canada', 'Ghana'];
+      _stubPredictions(
+        predictionService,
+        matches: [
+          futureMatch,
+          for (var i = 0; i < teams.length; i++)
+            MatchPrediction(
+              fixtureId: 200 + i,
+              round: futureMatch.round,
+              kickoffLabel: futureMatch.kickoffLabel,
+              kickoffAt: futureMatch.kickoffAt,
+              homeTeam: teams[i],
+              awayTeam: 'Uruguay',
+              status: 'NS',
+            ),
+        ],
+        predictions: {},
+      );
+      await tester.pumpWidget(
+        _buildScreen(sessionController, predictionService),
+      );
+      await tester.pumpAndSettle();
+
+      // Act: 3 x 0 on the first match, then scroll to the end and back.
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.byTooltip('Aumentar').first);
+        await tester.pump();
+      }
+      final scrollable = find.byType(Scrollable).first;
+      await tester.drag(scrollable, const Offset(0, -5000));
+      await tester.pumpAndSettle();
+      final firstCardDisposed = find
+          .text('Brazil', skipOffstage: false)
+          .evaluate()
+          .isEmpty;
+      await tester.drag(scrollable, const Offset(0, 5000));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(firstCardDisposed, isTrue);
+      expect(find.text('3'), findsOneWidget);
+    });
   });
 }
 

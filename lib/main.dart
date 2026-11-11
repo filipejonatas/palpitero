@@ -84,7 +84,7 @@ class _FirebaseBootstrapAppState extends State<FirebaseBootstrapApp> {
 }
 
 /// Root app widget that wires theme, session redirects, and navigation.
-class PalpiteroApp extends StatelessWidget {
+class PalpiteroApp extends StatefulWidget {
   const PalpiteroApp({super.key, required this.sessionController});
 
   final SessionController sessionController;
@@ -98,9 +98,48 @@ class PalpiteroApp extends StatelessWidget {
       kDebugMode && bool.fromEnvironment('DESIGN_SYSTEM');
 
   @override
+  State<PalpiteroApp> createState() => _PalpiteroAppState();
+}
+
+class _PalpiteroAppState extends State<PalpiteroApp> {
+  // Built once: recreating the router on every rebuild (theme or locale
+  // change, for example) would reset navigation to the initial location.
+  late GoRouter _router = _buildRouter();
+
+  @override
+  void didUpdateWidget(covariant PalpiteroApp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessionController != widget.sessionController) {
+      _router.dispose();
+      _router = _buildRouter();
+    }
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final router = GoRouter(
-      initialLocation: _startAtCatalog ? catalogLocation : '/splash',
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'Palpitero',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: AppTheme.mode,
+      routerConfig: _router,
+    );
+  }
+
+  GoRouter _buildRouter() {
+    final sessionController = widget.sessionController;
+    const catalogLocation = PalpiteroApp.catalogLocation;
+    return GoRouter(
+      initialLocation: PalpiteroApp._startAtCatalog
+          ? catalogLocation
+          : '/splash',
       refreshListenable: sessionController,
       redirect: (context, state) {
         final signedIn = sessionController.currentUser != null;
@@ -194,15 +233,6 @@ class PalpiteroApp extends StatelessWidget {
           ],
         ),
       ],
-    );
-
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Palpitero',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: AppTheme.mode,
-      routerConfig: router,
     );
   }
 }

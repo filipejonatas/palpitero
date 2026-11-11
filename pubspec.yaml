@@ -48,6 +48,7 @@ dependencies:
   firebase_app_check: ^0.4.4+2
   firebase_storage: ^13.4.2
   image_picker: ^1.2.2
+  vector_graphics: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,7 @@ dev_dependencies:
   mocktail: ^1.0.5
   fake_cloud_firestore: ^4.1.1
   firebase_auth_mocks: ^0.15.2
+  vector_graphics_compiler: ^1.2.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -80,7 +82,13 @@ flutter:
   assets:
     - assets/images/google_logo.svg
     - assets/images/trophy_icon.png
-    - assets/flags/
+    # Bandeiras pré-compiladas no build (formato binário do vector_graphics):
+    # sem parse de XML em runtime. Carregue com AssetBytesLoader, não SvgPicture.asset.
+    - path: assets/flags/
+      transformers:
+        - package: vector_graphics_compiler
+          # Meia precisão: imperceptível a 48 px e ~45% menor.
+          args: ['--use-half-precision-control-points']
 
   # Inter 4.1 (SIL OFL 1.1, veja assets/fonts/OFL.txt).
   # Somente os pesos da escala do DESIGN.md: 400/500/700/900.

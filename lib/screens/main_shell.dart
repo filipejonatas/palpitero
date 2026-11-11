@@ -39,6 +39,9 @@ class MainShell extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppRadii.lg),
+            // Kept after the CP9 review (docs/DESIGN_SYSTEM_PLAN.md): one
+            // filter, clipped to the bar. Swap for an opaque surface only if
+            // profiling shows raster jank.
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
