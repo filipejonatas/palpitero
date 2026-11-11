@@ -168,14 +168,37 @@ Histórico da decisão:
 
 ## Checkpoint 3: Tokens
 **Objetivo:** todo valor visual vive em um só lugar.
-- [ ] `AppColors`: adicionar semânticos (`border`, `overlay`, `gold`, `success`, `win`, `loss`, `pending`) e cores de avatar.
-- [ ] `AppSpacing`: escala (4, 8, 12, 16, 20, 24, 32; remover 7, 10, 14, 18, 22 se possível).
-- [ ] `AppTypography`: escala fechada (ex.: caption 12, body 14/16, title 20/22, display 28/30) no `TextTheme`.
-- [ ] `AppRadii`: incluir os raios avulsos (8, 32, 40) ou eliminá-los.
-- [ ] `AppShadows`, `AppDurations` (animações) e opacidades padrão (`.06`, `.08`, `.12`).
-- [ ] Expor via `ThemeExtension` (`context.tokens`) para acesso curto nas telas.
+- [x] Cores: todos os tokens do `DESIGN.md` (neutros, marca, `success/win`, `loss/error`,
+      `live`, `pending`, `gold`) em `AppTokens`, por tema; cores de avatar em `AppAvatarPalette`.
+- [x] `AppSpacing`: escala 4/8/12/16/20/24/32 + `screen`, `screenAuth`, `cardGap`, `bottomNavClearance` (120).
+- [x] `AppTypography`: escala fechada de 8 estilos, mapeada em todos os papéis do `TextTheme`.
+- [x] `AppRadii`: `sm 8`, `md 14`, `lg 24`, `xl 32`, `pill` (`card`/`nav` ficam como aliases até o CP4).
+- [x] Sombras (`floatingShadow`, `glowShadow` em `AppTokens`), `AppDurations` (150/250/400),
+      `AppOpacity` e `AppSizes` (botão 52, toque 48).
+- [x] Expor via `ThemeExtension` (`context.tokens`).
 
-**Pronto quando:** tokens documentados e `app_theme.dart` sem números mágicos.
+**Pronto quando:** tokens documentados e `app_theme.dart` sem números mágicos. ✅
+
+**Arquivos:** `lib/theme/app_scales.dart` (igual nos dois temas), `lib/theme/app_tokens.dart`
+(cores e sombras por tema), `lib/theme/app_theme.dart` (monta o `ThemeData` e reexporta os dois).
+Basta `import 'package:palpitero/theme/app_theme.dart'`.
+
+**Decisões e achados**
+- **`AppColors` legado continua** (dark-only, usado ~140 vezes nas telas). Some no CP4.
+- **`overlay` não virou token:** os `Colors.white/black` com alpha das telas são todos bordas
+  (`border`/`borderSubtle`) ou texto sobre lima (`onBrand`). Nenhum é overlay de fato.
+- **Mudanças visíveis (intencionais, seguem o `DESIGN.md`)**, goldens regenerados:
+  - `titleLarge` 22/w900 → `headline` 24/w700; `titleMedium` w800 → w700; AppBar w800 → w700.
+  - `labelLarge` 13/w800 → 13/w500; chips w700 → w500.
+  - Botões: texto 16/w700 em todos (o `FilledButton` era 15/w800) e altura 52 (o `FilledButton` era 50).
+  - `headlineMedium` (título das telas) e `bodyLarge`/`bodyMedium` não mudaram.
+- **Teste de contraste antecipado do CP7:** `test/theme/app_tokens_test.dart` verifica AA
+  (4,5:1) de cada cor de texto sobre `background`, `surface` e `surfaceElevated` nos dois
+  temas, `live` só sobre `background`/`surface`, e os pares `on*` sobre seus preenchimentos.
+  Todos os valores do `DESIGN.md` passaram.
+- `glowShadow` adota o brilho da Splash (`.30`, blur 40, spread 10); o Login (`.25`, 30, 8)
+  passa a usá-lo no CP4.
+- Resultado: `analyze` só com o aviso conhecido; **95 passando, 4 pulados**; 4/4 goldens ok.
 
 ## Checkpoint 4: Migrar telas para os tokens
 **Objetivo:** remover valores avulsos das telas, uma tela por vez.
@@ -213,7 +236,7 @@ Histórico da decisão:
 **Objetivo:** ver e proteger cada componente em todos os estados.
 - [ ] Widgetbook (ou tela `/design-system` só em debug) com todos os componentes.
 - [ ] Goldens por componente (normal, desabilitado, carregando, erro).
-- [ ] Teste de contraste das cores de texto sobre as superfícies (acessibilidade).
+- [x] Teste de contraste das cores de texto sobre as superfícies (acessibilidade). Feito no CP3.
 
 ## Checkpoint 8: Guardrails e documentação
 **Objetivo:** impedir regressão e orientar quem (ou qual IA) criar telas novas.

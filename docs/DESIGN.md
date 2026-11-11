@@ -123,7 +123,19 @@ Hoje são 22 usos de `w900`; a meta é que sobrem apenas os casos da primeira li
 | `body` | 16 / w400 · `bodySmall` 14 / w400 | 16, 15, 14 |
 | `label` | 13 / w500 · `caption` 12 / w500 | 13, 12, 11 |
 
-O mapeamento exato para o `TextTheme` do Material é feito no Checkpoint 3.
+Mapeamento para o `TextTheme` do Material (todos os papéis caem na escala):
+
+| Papel do Material | Estilo |
+|---|---|
+| `display*`, `headlineLarge`, `headlineMedium` | `display` |
+| `headlineSmall`, `titleLarge` | `headline` |
+| `titleMedium` | `titleSmall` |
+| `titleSmall`, `labelLarge` | `label` |
+| `bodyLarge` | `body` |
+| `bodyMedium` (cor `textSecondary`) | `bodySmall` |
+| `bodySmall`, `labelMedium`, `labelSmall` | `caption` |
+
+O estilo `title` (20/w700) é usado pela AppBar. Texto de botão = `titleSmall`.
 
 ### Forma e densidade
 - **Raios** (escala): `sm 8` (badges, campos pequenos) · `md 14` (cards, botões, inputs,
@@ -137,6 +149,22 @@ O mapeamento exato para o `TextTheme` do Material é feito no Checkpoint 3.
   (barra de navegação, bottom sheet, snackbar).
 - **Movimento**: curto e funcional (150 ms para estados, 250 ms para transições,
   400 ms no máximo). Pulsar só o indicador "ao vivo".
+
+### Tokens em código
+Desde o Checkpoint 3, um único import: `package:palpitero/theme/app_theme.dart`.
+
+| Onde | O quê | Como usar |
+|---|---|---|
+| `AppTokens` (`app_tokens.dart`) | Cores e sombras, por tema | `context.tokens.surface`, `context.tokens.stateFill(t.success)` |
+| `AppTypography` | Escala de texto | Pelo tema: `Theme.of(context).textTheme.titleMedium` |
+| `AppSpacing` | 4…32, `screen`, `cardGap`, `bottomNavClearance` | `EdgeInsets.all(AppSpacing.lg)` |
+| `AppRadii` | `sm`, `md`, `lg`, `xl`, `pill` | `BorderRadius.circular(AppRadii.md)` |
+| `AppSizes` | `buttonHeight` 52, `minTouchTarget` 48 | |
+| `AppDurations` | `fast` 150, `medium` 250, `slow` 400 ms | |
+| `AppOpacity` | `.06` `.08` `.12` `.14` `.35` `.38` `.70` | `color.withValues(alpha: AppOpacity.stateFill)` |
+| `AppAvatarPalette` | 6 cores de avatar | Só dentro do avatar |
+
+`AppColors` é legado (só escuro) e não deve ser usado em código novo.
 
 ### O que nunca fazer
 - Usar lima como texto no tema claro.
