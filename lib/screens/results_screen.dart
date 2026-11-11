@@ -9,7 +9,7 @@ import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
 import '../design_system/design_system.dart';
 import '../utils/match_day_selector.dart';
-import '../widgets/match_card.dart';
+import '../widgets/widgets.dart';
 
 /// Matches screen showing official scores and status cards by date.
 class ResultsScreen extends StatefulWidget {
@@ -66,7 +66,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             else if (_matches.isEmpty)
               const AppEmptyState(message: 'Nenhum resultado encontrado.')
             else ...[
-              AppSectionHeader(title: visibleDay!.label),
+              RoundHeader(label: visibleDay!.label),
               const SizedBox(height: AppSpacing.md),
               for (final match in visibleDay.matches)
                 Padding(
@@ -89,15 +89,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                           .slideY(begin: .06, end: 0),
                 ),
               if (matchDays.length > 1)
-                _MatchDaysPager(
-                  currentDay: _dayIndex + 1,
-                  totalDays: matchDays.length,
-                  onPrevious: _dayIndex == 0
-                      ? null
-                      : () => setState(() => _dayIndex--),
-                  onNext: _dayIndex >= matchDays.length - 1
-                      ? null
-                      : () => setState(() => _dayIndex++),
+                DaySelector(
+                  index: _dayIndex,
+                  count: matchDays.length,
+                  onChanged: (index) => setState(() => _dayIndex = index),
                 ),
             ],
           ],
@@ -106,26 +101,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  List<_MatchDay> get _matchDays {
-    return _buildMatchDays(_matches);
-  }
-
-  List<_MatchDay> _buildMatchDays(List<MatchPrediction> matches) {
-    final days = <String, List<MatchPrediction>>{};
-    for (final match in matches) {
-      days.putIfAbsent(_dayLabel(match), () => []).add(match);
-    }
-
-    return days.entries
-        .map((entry) => _MatchDay(label: entry.key, matches: entry.value))
-        .toList();
-  }
+  List<MatchDay> get _matchDays => groupMatchesByKickoffLabel(_matches);
 
   Future<void> _loadResults() async {
     try {
       final matches = await _predictionService.loadMatches();
       if (!mounted) return;
-      final matchDays = _buildMatchDays(matches);
+      final matchDays = groupMatchesByKickoffLabel(matches);
       setState(() {
         _matches = matches;
         _dayIndex = initialMatchDayIndex(
@@ -144,7 +126,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         AppSnackBar.error(context, 'Nao foi possivel conectar ao backend.');
         return;
       }
-      final matchDays = _buildMatchDays(mockMatches);
+      final matchDays = groupMatchesByKickoffLabel(mockMatches);
       setState(() {
         _matches = mockMatches;
         _dayIndex = initialMatchDayIndex(
@@ -172,12 +154,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
       ),
     );
   }
-
-  String _dayLabel(MatchPrediction match) {
-    final labelParts = match.kickoffLabel.split(',');
-    if (labelParts.isEmpty) return 'Dia do jogo';
-    return labelParts.first.trim();
-  }
 }
 
 class _ResultActions extends StatelessWidget {
@@ -188,33 +164,21 @@ class _ResultActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        PhosphorIcon(
-          match.isFinished
-              ? PhosphorIcons.checkCircle()
-              : PhosphorIcons.clock(),
-          size: 16,
-          color: match.isFinished
-              ? context.tokens.success
-              : context.tokens.textSecondary,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            match.isFinished
-                ? 'Resultado confirmado'
-                : 'Palpites liberados apos o fim',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ),
-        if (match.isFinished)
-          AppButton.text(
-            label: 'Palpites',
-            icon: PhosphorIcon(PhosphorIcons.users(), size: 16),
-            onPressed: onOpenPredictions,
-          ),
-      ],
+    final finished = match.isFinished;
+
+    return MatchInfoRow(
+      icon: finished ? PhosphorIcons.checkCircle() : PhosphorIcons.clock(),
+      iconColor: finished ? context.tokens.success : null,
+      label: finished
+          ? 'Resultado confirmado'
+          : 'Palpites liberados apos o fim',
+      trailing: finished
+          ? AppButton.text(
+              label: 'Palpites',
+              icon: PhosphorIcon(PhosphorIcons.users(), size: 16),
+              onPressed: onOpenPredictions,
+            )
+          : null,
     );
   }
 }
@@ -291,120 +255,15 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
                     )
                   else
                     for (final prediction in result.predictions)
-                      _PublicPredictionTile(prediction: prediction),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: PredictionTile.public(prediction),
+                      ),
                 ],
               ),
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _PublicPredictionTile extends StatelessWidget {
-  const _PublicPredictionTile({required this.prediction});
-
-  final PublicPredictionResult prediction;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-    final scored = prediction.points > 0;
-    // Exact score is a hit: success state (docs/DESIGN.md, "Semânticas").
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: AppCard.elevated(
-        highlight: prediction.exactScore ? t.success : null,
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: t.background,
-              foregroundColor: t.brandOnSurface,
-              child: Text(_initial, style: text.titleMedium),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    prediction.nick,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '${prediction.predictedHomeScore} x ${prediction.predictedAwayScore}',
-                    style: text.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            AppBadge.points(prediction.points, highlighted: scored),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String get _initial {
-    final trimmed = prediction.nick.trim();
-    if (trimmed.isEmpty) return '?';
-    return trimmed.characters.first.toUpperCase();
-  }
-}
-
-class _MatchDay {
-  const _MatchDay({required this.label, required this.matches});
-
-  final String label;
-  final List<MatchPrediction> matches;
-}
-
-class _MatchDaysPager extends StatelessWidget {
-  const _MatchDaysPager({
-    required this.currentDay,
-    required this.totalDays,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final int currentDay;
-  final int totalDays;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Dia anterior',
-            onPressed: onPrevious,
-            icon: PhosphorIcon(PhosphorIcons.caretLeft()),
-          ),
-          Expanded(
-            child: Text(
-              'Dia $currentDay de $totalDays',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Proximo dia',
-            onPressed: onNext,
-            icon: PhosphorIcon(PhosphorIcons.caretRight()),
-          ),
-        ],
       ),
     );
   }

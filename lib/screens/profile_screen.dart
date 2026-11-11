@@ -10,7 +10,7 @@ import '../services/leaderboard_service.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
 import '../design_system/design_system.dart';
-import '../widgets/logout_circle_button.dart';
+import '../widgets/widgets.dart';
 
 /// Profile screen with avatar, editable identity, stats, and history.
 class ProfileScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late final TextEditingController _nickController;
   LeaderboardEntry? _userStats;
-  List<_PredictionHistoryItem> _history = [];
+  List<({MatchPrediction match, UserMatchPrediction prediction})> _history = [];
   bool _isStatsLoading = true;
   bool _isPhotoUploading = false;
   String? _statsError;
@@ -88,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   : _pickAndUploadPhoto,
             ),
             const SizedBox(height: AppSpacing.lg),
-            _StatsGrid(entry: _userStats, isLoading: _isStatsLoading),
+            ProfileStatsGrid(entry: _userStats, isLoading: _isStatsLoading),
             if (_statsError != null) ...[
               const SizedBox(height: AppSpacing.md),
               AppErrorState(message: _statsError!),
@@ -129,7 +129,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               )
             else
               for (final item in _history) ...[
-                _HistoryTile(item: item),
+                PredictionTile.history(
+                  match: item.match,
+                  prediction: item.prediction,
+                ),
                 const SizedBox(height: AppSpacing.md),
               ],
           ],
@@ -264,10 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .map((entry) {
               final match = matchesById[entry.key];
               if (match == null) return null;
-              return _PredictionHistoryItem(
-                match: match,
-                prediction: entry.value,
-              );
+              return (match: match, prediction: entry.value);
             })
             .nonNulls
             .toList()
@@ -300,7 +300,7 @@ class _UserSummary extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
-          _ProfilePhoto(photoUrl: user.photoUrl, radius: 36),
+          AvatarBadge(photoUrl: user.photoUrl, radius: 36),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
@@ -320,152 +320,5 @@ class _UserSummary extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _ProfilePhoto extends StatelessWidget {
-  const _ProfilePhoto({required this.photoUrl, required this.radius});
-
-  final String? photoUrl;
-  final double radius;
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = photoUrl?.trim();
-
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: context.tokens.surfaceElevated,
-      foregroundImage: imageUrl == null || imageUrl.isEmpty
-          ? null
-          : NetworkImage(imageUrl),
-      child: imageUrl == null || imageUrl.isEmpty
-          ? PhosphorIcon(
-              PhosphorIcons.userCircle(),
-              color: context.tokens.textSecondary,
-              size: radius,
-            )
-          : null,
-    );
-  }
-}
-
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.entry, required this.isLoading});
-
-  final LeaderboardEntry? entry;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    final points = isLoading ? '--' : '${entry?.points ?? 0}';
-    final exactScores = isLoading ? '--' : '${entry?.exactScores ?? 0}';
-    final predictions = isLoading ? '--' : '${entry?.predictionsCount ?? 0}';
-    final position = isLoading ? '--' : '#${entry?.position ?? 0}';
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 520;
-        return GridView.count(
-          crossAxisCount: isWide ? 4 : 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: isWide ? 1.7 : 1.45,
-          children: [
-            _StatCard(label: 'Pontos', value: points),
-            _StatCard(label: 'Exatos', value: exactScores),
-            _StatCard(label: 'Palpites', value: predictions),
-            _StatCard(label: 'Posicao', value: position),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard.elevated(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.numeric.copyWith(
-              color: context.tokens.brandOnSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.item});
-
-  final _PredictionHistoryItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Row(
-        children: [
-          PhosphorIcon(
-            PhosphorIcons.clockCounterClockwise(),
-            color: context.tokens.pending,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  item.subtitle,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String get title => '${item.match.homeTeam} x ${item.match.awayTeam}';
-}
-
-class _PredictionHistoryItem {
-  const _PredictionHistoryItem({required this.match, required this.prediction});
-
-  final MatchPrediction match;
-  final UserMatchPrediction prediction;
-
-  String get subtitle {
-    final home = prediction.homeScore ?? '-';
-    final away = prediction.awayScore ?? '-';
-    return 'Palpite: $home x $away - ${_pickLabel(prediction.pick)}';
-  }
-
-  String _pickLabel(MatchPick pick) {
-    return switch (pick) {
-      MatchPick.home => match.homeTeam,
-      MatchPick.draw => 'Empate',
-      MatchPick.away => match.awayTeam,
-    };
   }
 }

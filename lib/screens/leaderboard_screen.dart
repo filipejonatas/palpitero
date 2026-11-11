@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../models/app_user.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_service.dart';
 import '../services/session_controller.dart';
 import '../design_system/design_system.dart';
-import '../widgets/avatar_badge.dart';
-import '../widgets/logout_circle_button.dart';
+import '../widgets/widgets.dart';
 
 /// Ranking screen with leaderboard positions, avatars, and points badges.
 class LeaderboardScreen extends StatefulWidget {
@@ -88,7 +86,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               if (userEntry != null) ...[
                 const AppSectionHeader(title: 'Sua posicao'),
                 const SizedBox(height: AppSpacing.md),
-                LeaderboardTile(entry: userEntry),
+                LeaderboardRow.entry(userEntry),
                 const SizedBox(height: AppSpacing.xl),
               ],
               const AppSectionHeader(title: 'Top palpites'),
@@ -99,15 +97,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 for (final entry in pagedEntries)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: LeaderboardTile(
-                      entry: entry,
+                    child: LeaderboardRow.entry(
+                      entry,
                     ).animate().fadeIn(duration: 220.ms).slideY(begin: .04),
                   ),
               if (topEntries.length > _entriesPerPage) ...[
                 const SizedBox(height: AppSpacing.xs),
-                _LeaderboardPager(
-                  currentPage: safePageIndex + 1,
-                  totalPages: totalPages,
+                AppPager(
+                  label: 'Pagina ${safePageIndex + 1} de $totalPages',
+                  previousTooltip: 'Pagina anterior',
+                  nextTooltip: 'Proxima pagina',
                   onPrevious: safePageIndex == 0
                       ? null
                       : () => setState(() => _pageIndex = safePageIndex - 1),
@@ -174,127 +173,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       predictionsCount: 0,
       exactScores: 0,
       isCurrentUser: true,
-    );
-  }
-}
-
-class _LeaderboardPager extends StatelessWidget {
-  const _LeaderboardPager({
-    required this.currentPage,
-    required this.totalPages,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final int currentPage;
-  final int totalPages;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Pagina anterior',
-            onPressed: onPrevious,
-            icon: PhosphorIcon(PhosphorIcons.caretLeft()),
-          ),
-          Expanded(
-            child: Text(
-              'Pagina $currentPage de $totalPages',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Proxima pagina',
-            onPressed: onNext,
-            icon: PhosphorIcon(PhosphorIcons.caretRight()),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A reusable leaderboard row with position, avatar, username, and points.
-class LeaderboardTile extends StatelessWidget {
-  const LeaderboardTile({super.key, required this.entry});
-
-  final LeaderboardEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final t = context.tokens;
-    final isPodium = entry.position <= 3;
-
-    return AppCard(
-      highlight: entry.isCurrentUser ? t.brand : null,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 52,
-            child: Row(
-              children: [
-                if (isPodium) ...[
-                  Tooltip(
-                    message: 'Top 3',
-                    child: PhosphorIcon(
-                      PhosphorIcons.trophy(PhosphorIconsStyle.fill),
-                      size: 14,
-                      color: t.gold,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                ],
-                Text(
-                  '#${entry.position}',
-                  style: theme.textTheme.titleMedium?.numeric.copyWith(
-                    color: isPodium ? t.gold : t.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          AvatarBadge(avatarId: entry.avatarId, photoUrl: entry.photoUrl),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(entry.nick, style: theme.textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    PhosphorIcon(
-                      PhosphorIcons.target(),
-                      size: 14,
-                      color: context.tokens.textSecondary,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        '${entry.predictionsCount} palpites - ${entry.exactScores} exatos',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          AppBadge.points(entry.points),
-        ],
-      ),
     );
   }
 }

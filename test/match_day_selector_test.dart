@@ -41,6 +41,32 @@ void main() {
       );
     });
   });
+
+  group('grouping matches by day', () {
+    test('by kickoff label keeps the date part, in order', () {
+      final days = groupMatchesByKickoffLabel([
+        _match(1, '2026-06-23T19:00:00Z'),
+        _match(2, ''),
+      ]);
+
+      expect(days, hasLength(1));
+      expect(days.single.label, '23 jun');
+      expect(days.single.matches.map((m) => m.fixtureId), [1, 2]);
+    });
+
+    test('by kickoff date splits calendar days and labels them', () {
+      final first = DateTime(2026, 6, 23, 12).toUtc().toIso8601String();
+      final second = DateTime(2026, 6, 24, 12).toUtc().toIso8601String();
+      final days = groupMatchesByKickoffDate([
+        _match(1, first),
+        _match(2, second),
+        _match(3, first),
+      ]);
+
+      expect(days.map((day) => day.label), ['23 jun', '24 jun']);
+      expect(days.first.matches.map((m) => m.fixtureId), [1, 3]);
+    });
+  });
 }
 
 MatchPrediction _match(int fixtureId, String kickoffAt) {

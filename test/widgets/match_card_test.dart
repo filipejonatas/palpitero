@@ -1,5 +1,5 @@
 import 'package:palpitero/models/match_prediction.dart';
-import 'package:palpitero/widgets/match_card.dart';
+import 'package:palpitero/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -38,7 +38,7 @@ flutter analyze
 dart format --output=none --set-exit-if-changed .   # mesmo passo do CI
 ```
 - `analyze`: 1 aviso (`info`), aceito por enquanto: `DropdownButtonFormField.value` está
-  depreciado em `playoff_matchups_screen.dart:438` (trocar por `initialValue` no Checkpoint 6).
+  depreciado em `playoff_matchups_screen.dart:438` (resolvido no Checkpoint 6).
 - `format`: 6 arquivos fora do padrão faziam o CI falhar. Corrigido com `dart format lib test`.
 - `pub get`: 1 pacote descontinuado (`golden_toolkit`). Decidir no Checkpoint 7 se migra
   para `alchemist` ou para os `matchesGoldenFile` nativos.
@@ -305,13 +305,66 @@ Guia de uso: seção "Componentes" do [`DESIGN.md`](DESIGN.md).
 
 ## Checkpoint 6: Componentes de domínio
 **Objetivo:** extrair os widgets privados das telas gigantes.
-- [ ] `MatchCard` (revisar `lib/widgets/match_card.dart`).
-- [ ] `ScoreStepper` (palpite de 0 a 9), `PredictionTile`.
-- [ ] `LeaderboardRow` + `AvatarBadge` (revisar).
-- [ ] `RoundHeader`, `BracketMatchup`, `DaySelector`.
-- [ ] Reduzir `playoff_matchups_screen`, `playoff_screen` e `predictions_screen` a composição de componentes.
+- [x] `MatchCard` (revisar `lib/widgets/match_card.dart`): separado em `MatchCard`, `TeamFlag`
+      (com a tabela de bandeiras) e `MatchStatusChip`/`PlayoffStatusBadge`; + `MatchInfoRow`.
+- [x] `ScoreStepper` (palpite de 0 a 9), `PredictionTile` (+ `PredictionCard`).
+- [x] `LeaderboardRow` + `AvatarBadge` (revisar).
+- [x] `RoundHeader`, `BracketMatchup`, `DaySelector` (+ `RoundSelector`, `PlayoffBracketView`).
+- [x] Reduzir `playoff_matchups_screen`, `playoff_screen` e `predictions_screen` a composição de componentes.
 
-**Pronto quando:** nenhuma tela passa de ~400 linhas e não há widget visual duplicado.
+**Pronto quando:** nenhuma tela passa de ~400 linhas e não há widget visual duplicado. ✅
+
+**Pasta:** `lib/widgets/` com o barrel `widgets.dart` (mata-mata em `lib/widgets/playoff/`).
+Guia: seção "Componentes de domínio" do [`DESIGN.md`](DESIGN.md).
+
+| Tela | Antes | Depois |
+|---|---|---|
+| `playoff_screen` | 1006 | 210 |
+| `playoff_matchups_screen` | 942 | 306 |
+| `predictions_screen` | 708 | 279 |
+| `profile_screen` | 471 | 324 |
+| `results_screen` | 411 | 270 |
+| `home_screen` | 326 | 171 |
+| `leaderboard_screen` | 300 | 178 |
+
+Só sobram widgets privados específicos de uma tela (`_UserSummary`, `_ResultActions`, a sheet de
+resultados, os blocos do Login e o item da barra de navegação). `login_screen` (433) não mudou:
+não tem duplicação e não fazia parte do escopo.
+
+**Decisões e achados**
+- **Duplicações removidas:** 4 paginadores (`_MatchDaysPager` ×3, `_LeaderboardPager`) e o
+  `_RoundPager` viram `AppPager` (base) + `DaySelector`/`RoundSelector`; `_PreviewBracket` e
+  `_OfficialBracket` repetiam o canvas inteiro e viram `PlayoffBracketView.preview/.official`;
+  `LeaderboardTile` e `_CompetitorScoreCard` eram o mesmo desenho e viram `LeaderboardRow`;
+  `_PublicPredictionTile` e `_HistoryTile` viram `PredictionTile`; `_ProfilePhoto` e o avatar de
+  inicial entram no `AvatarBadge`; o botão "Perfil" e o `LogoutCircleButton` viram `HeaderActionButton`;
+  a ordem de seeds estava copiada em duas telas.
+- **Lógica sem visual tirada das telas** (não muda comportamento): agrupamento por dia
+  (`groupMatchesByKickoffLabel`/`ByKickoffDate` em `utils/match_day_selector.dart`) e rodadas do
+  mata-mata (`utils/playoff_rounds.dart`).
+- **Base ampliada** (regra "amplie o componente antes de desenhar à mão"): `AppCard.inset`
+  (`background` + `borderSubtle`, para a pílula de palpite dentro de card elevado) e `AppPager`.
+- **Aviso do CP0 resolvido:** `DropdownButtonFormField.value` → `initialValue` com `key` que
+  reinicia o campo quando a rodada ou a seleção muda. `flutter analyze` agora sem nenhum aviso.
+- `LeaderboardTile` foi renomeado para `LeaderboardRow` (o teste do Ranking foi ajustado).
+
+**Mudanças visíveis (intencionais)**
+- Rótulo do dia em Palpites e Resultados: `AppSectionHeader` (à esquerda) → `RoundHeader`
+  (centralizado entre divisores), como já era na Home. Um só estilo para o mesmo conceito.
+- Botão "Perfil" da Home: fundo `surface` sem borda → `surfaceElevated` + `border`, igual ao "Sair".
+- Faixa da competição na Home: `Container` à mão (`surfaceElevated` + `border`) → `AppCard`
+  (`surface` + `borderSubtle`), pela regra do `DESIGN.md` para card solto na tela.
+- Estatísticas do Perfil: espaço entre os cards 10 → 12 (`cardGap`).
+- Foto do Perfil e avatares com foto: enquanto a imagem carrega mostram o ícone de reserva.
+
+**Testes**
+- Novo `test/widgets/domain_components_test.dart`: 15 casos × 2 temas (stepper nos limites,
+  seletores, pódio/minha linha, acerto exato, avatar, status do mata-mata, pênaltis no empate,
+  bye no preview, chave oficial, vencedor do confronto) + 3 testes de `playoff_rounds`.
+  `match_day_selector_test` ganhou os 2 agrupamentos por dia.
+- Goldens de `MatchCard` e Ranking idênticos pixel a pixel (sem regenerar): `LeaderboardRow` e o
+  `MatchCard` dividido reproduzem o visual anterior.
+- Resultado: `analyze` limpo; **168 passando, 8 pulados**; 8/8 goldens ok.
 
 ## Checkpoint 7: Catálogo e testes visuais
 **Objetivo:** ver e proteger cada componente em todos os estados.

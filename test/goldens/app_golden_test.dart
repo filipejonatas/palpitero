@@ -3,7 +3,7 @@ import 'package:palpitero/screens/login_screen.dart';
 import 'package:palpitero/screens/splash_page.dart';
 import 'package:palpitero/models/match_prediction.dart';
 import 'package:palpitero/theme/app_theme.dart';
-import 'package:palpitero/widgets/match_card.dart';
+import 'package:palpitero/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -10,6 +10,10 @@ enum AppCardTone {
 
   /// Item inside a card, sheet or panel: `surfaceElevated`, no border.
   elevated,
+
+  /// Item inside an elevated card: `background` + `borderSubtle`, one level
+  /// back so it reads against `surfaceElevated`.
+  inset,
 }
 
 /// Rounded container for any grouped content. The only way screens draw a
@@ -38,6 +42,15 @@ class AppCard extends StatelessWidget {
     this.onTap,
   }) : tone = AppCardTone.elevated;
 
+  const AppCard.inset({
+    super.key,
+    required this.child,
+    this.highlight,
+    this.padding = const EdgeInsets.all(AppSpacing.md),
+    this.width,
+    this.onTap,
+  }) : tone = AppCardTone.inset;
+
   final Widget child;
   final AppCardTone tone;
 
@@ -59,6 +72,7 @@ class AppCard extends StatelessWidget {
       (final Color color, _) => (t.stateFill(color), t.stateBorder(color)),
       (null, AppCardTone.surface) => (t.surface, t.borderSubtle),
       (null, AppCardTone.elevated) => (t.surfaceElevated, null),
+      (null, AppCardTone.inset) => (t.background, t.borderSubtle),
     };
 
     final decoration = BoxDecoration(

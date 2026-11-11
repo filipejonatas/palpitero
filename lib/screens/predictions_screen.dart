@@ -8,8 +8,7 @@ import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
 import '../design_system/design_system.dart';
 import '../utils/match_day_selector.dart';
-import '../widgets/logout_circle_button.dart';
-import '../widgets/match_card.dart';
+import '../widgets/widgets.dart';
 
 /// Palpite screen where users predict exact scores for each match.
 class PredictionsScreen extends StatefulWidget {
@@ -89,12 +88,12 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                   onPressed: _canSaveAll ? _saveAllPredictions : null,
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                AppSectionHeader(title: visibleDay!.label),
+                RoundHeader(label: visibleDay!.label),
                 const SizedBox(height: AppSpacing.md),
                 for (final match in visibleDay.matches)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _PredictionCard(
+                    child: PredictionCard(
                       key: ValueKey(match.fixtureId),
                       match: match,
                       draftPrediction: _drafts[match.fixtureId],
@@ -109,15 +108,10 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                     ).animate().fadeIn(duration: 220.ms).slideY(begin: .06),
                   ),
                 if (matchDays.length > 1)
-                  _MatchDaysPager(
-                    currentDay: _dayIndex + 1,
-                    totalDays: matchDays.length,
-                    onPrevious: _dayIndex == 0
-                        ? null
-                        : () => setState(() => _dayIndex--),
-                    onNext: _dayIndex >= matchDays.length - 1
-                        ? null
-                        : () => setState(() => _dayIndex++),
+                  DaySelector(
+                    index: _dayIndex,
+                    count: matchDays.length,
+                    onChanged: (index) => setState(() => _dayIndex = index),
                   ),
               ],
             ],
@@ -127,9 +121,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     );
   }
 
-  List<_MatchDay> get _matchDays {
-    return _buildMatchDays(_matches);
-  }
+  List<MatchDay> get _matchDays => groupMatchesByKickoffDate(_matches);
 
   bool get _canSaveAll {
     return !_isSavingAll &&
@@ -143,21 +135,6 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
       return const <MatchPrediction>[];
     }
     return matchDays[_dayIndex].matches;
-  }
-
-  List<_MatchDay> _buildMatchDays(List<MatchPrediction> matches) {
-    final days = <String, _MatchDay>{};
-    for (final match in matches) {
-      final key = _dayKey(match);
-      final label = _dayLabel(match);
-      final day = days.putIfAbsent(
-        key,
-        () => _MatchDay(label: label, matches: <MatchPrediction>[]),
-      );
-      day.matches.add(match);
-    }
-
-    return days.values.toList();
   }
 
   Future<void> _loadPredictions() async {
@@ -192,7 +169,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     }
 
     if (!mounted) return;
-    final matchDays = _buildMatchDays(matches);
+    final matchDays = groupMatchesByKickoffDate(matches);
     setState(() {
       _matches = matches;
       _dayIndex = initialMatchDayIndex(
@@ -291,44 +268,6 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     }
   }
 
-  String _dayLabel(MatchPrediction match) {
-    final kickoff = DateTime.tryParse(match.kickoffAt);
-    if (kickoff != null) {
-      final local = kickoff.toLocal();
-      return '${local.day.toString().padLeft(2, '0')} ${_monthLabel(local.month)}';
-    }
-
-    final labelParts = match.kickoffLabel.split(',');
-    if (labelParts.isEmpty) return 'Dia do jogo';
-    return labelParts.first.trim();
-  }
-
-  String _dayKey(MatchPrediction match) {
-    final kickoff = DateTime.tryParse(match.kickoffAt);
-    if (kickoff == null) return _dayLabel(match);
-
-    final local = kickoff.toLocal();
-    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
-  }
-
-  String _monthLabel(int month) {
-    return switch (month) {
-      1 => 'jan',
-      2 => 'fev',
-      3 => 'mar',
-      4 => 'abr',
-      5 => 'mai',
-      6 => 'jun',
-      7 => 'jul',
-      8 => 'ago',
-      9 => 'set',
-      10 => 'out',
-      11 => 'nov',
-      12 => 'dez',
-      _ => '',
-    };
-  }
-
   void _showMessage(String message, {bool isError = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -336,373 +275,5 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
           ? AppSnackBar.error(context, message)
           : AppSnackBar.info(context, message);
     });
-  }
-}
-
-class _MatchDay {
-  const _MatchDay({required this.label, required this.matches});
-
-  final String label;
-  final List<MatchPrediction> matches;
-}
-
-class _PredictionCard extends StatefulWidget {
-  const _PredictionCard({
-    super.key,
-    required this.match,
-    required this.draftPrediction,
-    required this.savedPrediction,
-    required this.isSaving,
-    required this.isLocked,
-    required this.onDraftChanged,
-    required this.onSave,
-  });
-
-  final MatchPrediction match;
-  final UserMatchPrediction? draftPrediction;
-  final UserMatchPrediction? savedPrediction;
-  final bool isSaving;
-  final bool isLocked;
-  final ValueChanged<UserMatchPrediction> onDraftChanged;
-  final ValueChanged<UserMatchPrediction> onSave;
-
-  @override
-  State<_PredictionCard> createState() => _PredictionCardState();
-}
-
-class _PredictionCardState extends State<_PredictionCard> {
-  late int _homeScore;
-  late int _awayScore;
-  MatchPick? _qualifiedPick;
-
-  @override
-  void initState() {
-    super.initState();
-    _syncFromWidget();
-  }
-
-  @override
-  void didUpdateWidget(covariant _PredictionCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.match.fixtureId != widget.match.fixtureId ||
-        oldWidget.draftPrediction != widget.draftPrediction) {
-      _syncFromWidget();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final prediction = _draftPrediction;
-    final hasSavedPrediction = widget.savedPrediction != null;
-    final canEdit = !widget.isSaving && !widget.isLocked;
-
-    return MatchCard(
-      match: widget.match,
-      homeScoreOverride: _homeScore,
-      awayScoreOverride: _awayScore,
-      footer: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _ScoreStepper(
-                  label: widget.match.homeTeam,
-                  value: _homeScore,
-                  enabled: canEdit,
-                  onChanged: (value) {
-                    setState(() => _homeScore = value);
-                    widget.onDraftChanged(_draftPrediction);
-                  },
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _ScoreStepper(
-                  label: widget.match.awayTeam,
-                  value: _awayScore,
-                  enabled: canEdit,
-                  onChanged: (value) {
-                    setState(() => _awayScore = value);
-                    widget.onDraftChanged(_draftPrediction);
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (_shouldAskQualifiedPick) ...[
-            _QualifiedPickSelector(
-              homeTeam: widget.match.homeTeam,
-              awayTeam: widget.match.awayTeam,
-              value: _qualifiedPick ?? MatchPick.home,
-              enabled: canEdit,
-              onChanged: (value) {
-                setState(() => _qualifiedPick = value);
-                widget.onDraftChanged(_draftPrediction);
-              },
-            ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-          AppButton(
-            label: widget.isSaving
-                ? 'Confirmando...'
-                : hasSavedPrediction
-                ? 'Atualizar palpite'
-                : 'Confirmar palpite',
-            icon: PhosphorIcon(PhosphorIcons.checkCircle()),
-            isLoading: widget.isSaving,
-            onPressed: canEdit ? () => widget.onSave(prediction) : null,
-          ),
-          if (widget.isLocked) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Palpites encerrados para este jogo.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-          if (widget.savedPrediction != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Salvo: ${_predictionLabel(widget.savedPrediction!)}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  UserMatchPrediction get _draftPrediction {
-    return UserMatchPrediction(
-      pick: pickFromScore(_homeScore, _awayScore),
-      qualifiedPick: _shouldAskQualifiedPick
-          ? (_qualifiedPick ?? MatchPick.home)
-          : null,
-      homeScore: _homeScore,
-      awayScore: _awayScore,
-    );
-  }
-
-  bool get _shouldAskQualifiedPick {
-    return widget.match.isPlayoffMatch && _homeScore == _awayScore;
-  }
-
-  void _syncFromWidget() {
-    _homeScore = widget.draftPrediction?.homeScore ?? 0;
-    _awayScore = widget.draftPrediction?.awayScore ?? 0;
-    _qualifiedPick = widget.draftPrediction?.qualifiedPick ?? MatchPick.home;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.onDraftChanged(_draftPrediction);
-    });
-  }
-
-  String _predictionLabel(UserMatchPrediction prediction) {
-    return '${_pickLabel(prediction.pick)} (${prediction.homeScore} x ${prediction.awayScore})';
-  }
-
-  String _pickLabel(MatchPick pick) {
-    return switch (pick) {
-      MatchPick.home => widget.match.homeTeam,
-      MatchPick.draw => 'Empate',
-      MatchPick.away => widget.match.awayTeam,
-    };
-  }
-}
-
-class _QualifiedPickSelector extends StatelessWidget {
-  const _QualifiedPickSelector({
-    required this.homeTeam,
-    required this.awayTeam,
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  final String homeTeam;
-  final String awayTeam;
-  final MatchPick value;
-  final bool enabled;
-  final ValueChanged<MatchPick> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AppCard.elevated(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Em caso de penaltis, quem passa?',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.strong.copyWith(
-              color: context.tokens.brandOnSurface,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Center(
-            child: SegmentedButton<MatchPick>(
-              segments: [
-                ButtonSegment(
-                  value: MatchPick.home,
-                  label: Text(
-                    homeTeam,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                ButtonSegment(
-                  value: MatchPick.away,
-                  label: Text(
-                    awayTeam,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-              selected: {value},
-              onSelectionChanged: enabled
-                  ? (selected) => onChanged(selected.first)
-                  : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScoreStepper extends StatelessWidget {
-  const _ScoreStepper({
-    required this.label,
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  final String label;
-  final int value;
-  final bool enabled;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AppCard.elevated(
-      child: Column(
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _StepButton(
-                tooltip: 'Diminuir',
-                icon: PhosphorIcons.minus(),
-                enabled: enabled && value > 0,
-                onTap: () => onChanged(value - 1),
-              ),
-              SizedBox(
-                width: 36,
-                child: Text(
-                  '$value',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium,
-                ),
-              ),
-              _StepButton(
-                tooltip: 'Aumentar',
-                icon: PhosphorIcons.plus(),
-                enabled: enabled && value < 9,
-                onTap: () => onChanged(value + 1),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepButton extends StatelessWidget {
-  const _StepButton({
-    required this.tooltip,
-    required this.icon,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  final String tooltip;
-  final PhosphorIconData icon;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: enabled ? onTap : null,
-      style: IconButton.styleFrom(
-        minimumSize: const Size.square(40),
-        fixedSize: const Size.square(40),
-        padding: EdgeInsets.zero,
-        backgroundColor: context.tokens.background,
-        foregroundColor: context.tokens.brandOnSurface,
-        disabledForegroundColor: context.tokens.textDisabled,
-      ),
-      icon: PhosphorIcon(icon, size: 18),
-    );
-  }
-}
-
-class _MatchDaysPager extends StatelessWidget {
-  const _MatchDaysPager({
-    required this.currentDay,
-    required this.totalDays,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final int currentDay;
-  final int totalDays;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Dia anterior',
-            onPressed: onPrevious,
-            icon: PhosphorIcon(PhosphorIcons.caretLeft()),
-          ),
-          Expanded(
-            child: Text(
-              'Dia $currentDay de $totalDays',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Proximo dia',
-            onPressed: onNext,
-            icon: PhosphorIcon(PhosphorIcons.caretRight()),
-          ),
-        ],
-      ),
-    );
   }
 }

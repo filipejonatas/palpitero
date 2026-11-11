@@ -1,4 +1,5 @@
 import 'package:palpitero/screens/leaderboard_screen.dart';
+import 'package:palpitero/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -28,7 +29,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.byType(LeaderboardTile), findsNWidgets(3));
+      expect(find.byType(LeaderboardRow), findsNWidgets(3));
       expect(find.text('Canarinho'), findsOneWidget);
       expect(find.text('User Test'), findsOneWidget);
     });

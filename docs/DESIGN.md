@@ -171,8 +171,8 @@ removido) e o app segue o tema do sistema.
 ### Componentes
 Desde o Checkpoint 5, as telas importam um único arquivo,
 `package:palpitero/design_system/design_system.dart`, que reexporta os tokens e os
-componentes base de `lib/design_system/`. Componentes de domínio (`MatchCard`,
-`AvatarBadge`) ficam em `lib/widgets/` e são montados com estes.
+componentes base de `lib/design_system/`. Componentes de domínio ficam em `lib/widgets/`
+(barrel `widgets.dart`, veja "Componentes de domínio") e são montados com estes.
 
 | Componente | Quando usar | Não usar para |
 |---|---|---|
@@ -182,6 +182,8 @@ componentes base de `lib/design_system/`. Componentes de domínio (`MatchCard`,
 | `AppButton.text` | Ação inline, tipo link ("Palpites"). Texto `brandOnSurface`. | Ação principal. |
 | `AppCard` | Qualquer bloco agrupado na tela: `surface` + `borderSubtle`. `highlight: t.brand/t.success` vira card de estado. `onTap` torna tocável. | |
 | `AppCard.elevated` | Item dentro de card, sheet ou painel: `surfaceElevated`, sem borda. | Card solto na tela. |
+| `AppCard.inset` | Item dentro de um `AppCard.elevated`: volta para `background` + `borderSubtle`. | Card solto na tela. |
+| `AppPager` | Barra anterior/próximo com rótulo ("Página 2 de 5") ou `child` no centro. `null` desabilita a seta. | Navegação entre telas. |
 | `AppChip` | Seleção em pílula (rodada, filtro). Selecionado = lima. | Status somente leitura (use `AppBadge`). |
 | `AppBadge(tone:)` | Status somente leitura: `live`, `pending`, `neutral` (encerrado), `success`, `loss`, `gold`. | Ação tocável. |
 | `AppBadge.points(n)` | Pílula de pontos; `highlighted: false` para quem não pontuou. | |
@@ -203,6 +205,39 @@ Regras:
 - Um `Container` com `BoxDecoration` de `surface`/`surfaceElevated` + raio `md` é um
   `AppCard`. Se o caso não couber, amplie o componente antes de desenhar à mão.
 - Todo componente lê só tokens; está coberto em `test/design_system/` nos dois temas.
+
+### Componentes de domínio
+Desde o Checkpoint 6, as telas só compõem: estado, carregamento e layout da lista. Todo
+widget visual de domínio vem de `package:palpitero/widgets/widgets.dart`, montado com os
+componentes base.
+
+| Componente | Quando usar |
+|---|---|
+| `MatchCard` | Qualquer jogo: bandeiras, placar (ou "VS") e status. O que muda por tela vai no `footer`. |
+| `MatchInfoRow` | Linha de rodapé do `MatchCard`: ícone + texto + `trailing` (rodada, ação). |
+| `TeamFlag` | Bandeira circular a partir do nome do time (`countryCodeForTeam`). |
+| `MatchStatusChip` / `PlayoffStatusBadge` | Status de jogo (API: `LIVE`, `FT`, `NS`) / de confronto (`live`, `finished`, `pending`). Mesmos tons de `AppBadge`. |
+| `RoundHeader` | Rótulo do dia ou da rodada entre dois divisores, acima da lista de jogos. |
+| `DaySelector` | "Dia N de M" com setas, abaixo da lista de jogos do dia. |
+| `RoundSelector` | Rodadas do mata-mata como chips, com setas. |
+| `PredictionCard` | Formulário de palpite: `MatchCard` + dois `ScoreStepper` + pênaltis no empate do mata-mata + confirmar. |
+| `ScoreStepper` | Placar de um time de 0 a 9 com − / + ("Diminuir"/"Aumentar"). |
+| `PredictionTile` | Palpite salvo como item: `.public` (sheet de resultados, acerto exato em `success`) e `.history` (Perfil). |
+| `LeaderboardRow` | Jogador com posição, avatar, nick, linhas de estatística e pontos. `.entry` para o ranking; o confronto do mata-mata usa o construtor completo (`rankStyle: winner`). |
+| `AvatarBadge` | Avatar circular: foto → ícone do avatar → inicial do nome → ícone genérico. `onElevated` sobre `surfaceElevated`. |
+| `HeaderActionButton` | Ação redonda do cabeçalho/AppBar ("Sair" via `LogoutCircleButton`, "Perfil"). |
+| `CompetitionStrip` | Faixa com o nome da competição e o número de jogos. |
+| `ProfileStatsGrid` / `StatTile` | Números do usuário no Perfil. |
+| `PlayoffBracketView` | Chaveamento de 32: `.preview` (seeds do ranking) ou `.official` (chave real com pontos da rodada). |
+| `BracketMatchup` | Duelo do mata-mata: os dois `LeaderboardRow`, "VS" e os palpites de cada um (`PredictionPill`). |
+| `MatchupPicker` / `MatchupStatusBar` | Escolha do duelo da rodada / nome e status do duelo escolhido. |
+| `PlayoffRulesCard` | Regras de pontuação do mata-mata. |
+
+Regras:
+- Tela não declara widget visual privado. Se precisar de um bloco novo, ele nasce em
+  `lib/widgets/` (domínio) ou `lib/design_system/` (genérico) e entra nesta tabela.
+- Lógica sem visual que as telas repetiam também saiu delas: agrupamento por dia em
+  `utils/match_day_selector.dart`, rodadas e seeds do mata-mata em `utils/playoff_rounds.dart`.
 
 ### Como escolher a cor certa (decisões do Checkpoint 4)
 - **Lima como preenchimento** (botão, chip ativo, aba ativa, pílula de pontos): `brand` com
