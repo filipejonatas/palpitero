@@ -14,13 +14,26 @@ import '../helpers/test_helpers.dart';
 
 const _runGoldens = bool.fromEnvironment('RUN_GOLDENS');
 
+/// Each golden runs in both themes (docs/DESIGN.md, "Modo de tema").
+/// Dark keeps the original file names; light adds the `_light` suffix.
+final _themes = <String, ThemeData Function()>{
+  '': AppTheme.dark,
+  '_light': AppTheme.light,
+};
+
 void main() {
-  group('Golden tests', () {
+  for (final MapEntry(key: suffix, value: theme) in _themes.entries) {
+    _goldens(suffix, theme);
+  }
+}
+
+void _goldens(String suffix, ThemeData Function() theme) {
+  group('Golden tests${suffix.isEmpty ? '' : ' ($suffix)'}', () {
     testGoldens('SplashPage matches iPhone 14 screenshot', (tester) async {
       // Arrange
       await tester.pumpWidgetBuilder(
         const SplashPage(),
-        wrapper: materialAppWrapper(theme: AppTheme.dark()),
+        wrapper: materialAppWrapper(theme: theme()),
         surfaceSize: const Size(390, 844),
       );
 
@@ -28,7 +41,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'splash_page_iphone_14');
+      await screenMatchesGolden(tester, 'splash_page_iphone_14$suffix');
     }, skip: !_runGoldens);
 
     testGoldens('LoginPage matches screenshot', (tester) async {
@@ -39,7 +52,7 @@ void main() {
             sessionController: TestSessionController(currentUser: null),
           ),
         ),
-        wrapper: materialAppWrapper(theme: AppTheme.dark()),
+        wrapper: materialAppWrapper(theme: theme()),
         surfaceSize: const Size(390, 844),
       );
 
@@ -47,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'login_page');
+      await screenMatchesGolden(tester, 'login_page$suffix');
     }, skip: !_runGoldens);
 
     testGoldens('MatchCard states match screenshots', (tester) async {
@@ -57,9 +70,9 @@ void main() {
           mainAxisSize: MainAxisSize.min,
           children: [
             MatchCard(match: futureMatch),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.cardGap),
             MatchCard(match: lockedMatch),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.cardGap),
             MatchCard(
               match: MatchPrediction(
                 fixtureId: 103,
@@ -75,7 +88,7 @@ void main() {
             ),
           ],
         ),
-        wrapper: materialAppWrapper(theme: AppTheme.dark()),
+        wrapper: materialAppWrapper(theme: theme()),
         surfaceSize: const Size(390, 520),
       );
 
@@ -83,7 +96,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'match_card_states');
+      await screenMatchesGolden(tester, 'match_card_states$suffix');
     }, skip: !_runGoldens);
 
     testGoldens('RankingPage top 3 matches screenshot', (tester) async {
@@ -97,7 +110,7 @@ void main() {
           sessionController: TestSessionController(),
           leaderboardService: service,
         ),
-        wrapper: materialAppWrapper(theme: AppTheme.dark()),
+        wrapper: materialAppWrapper(theme: theme()),
         surfaceSize: const Size(390, 844),
       );
 
@@ -105,7 +118,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'ranking_page_top_3');
+      await screenMatchesGolden(tester, 'ranking_page_top_3$suffix');
     }, skip: !_runGoldens);
   });
 }

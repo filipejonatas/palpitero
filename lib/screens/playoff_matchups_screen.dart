@@ -76,25 +76,30 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
             onPressed: _isLoading ? null : _loadBracket,
             icon: PhosphorIcon(PhosphorIcons.clockCounterClockwise()),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
         ],
       ),
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             Text('Mata-mata', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Compare os placares e pontos de cada duelo da rodada.',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: EdgeInsets.all(AppSpacing.xxxl),
                   child: CircularProgressIndicator(),
                 ),
               )
@@ -111,13 +116,13 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
                   setState(() => _matchIndex = value);
                 },
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.lg),
               _RoundStatusBar(match: selectedMatch),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.lg),
               if (_isLoadingScores)
                 const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding: EdgeInsets.all(AppSpacing.xxl),
                     child: CircularProgressIndicator(),
                   ),
                 )
@@ -127,7 +132,7 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
                   scoresByUserId: _scoresByUserId,
                   roundPredictionResults: _roundPredictionResults,
                 ).animate().fadeIn(duration: 220.ms).slideY(begin: .04),
-              const SizedBox(height: 18),
+              const SizedBox(height: AppSpacing.xl),
               _RoundPager(
                 rounds: rounds,
                 currentIndex: _roundIndex,
@@ -465,15 +470,15 @@ class _RoundStatusBar extends StatelessWidget {
         match.status.toLowerCase() == 'finished' ||
         match.status.toLowerCase() == 'done';
     final color = isFinished
-        ? AppColors.primaryAccent
-        : AppColors.textSecondary;
+        ? context.tokens.success
+        : context.tokens.textSecondary;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Row(
         children: [
@@ -482,7 +487,7 @@ class _RoundStatusBar extends StatelessWidget {
             size: 18,
             color: color,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               match.isBye ? 'Confronto com bye' : _matchLabel(match),
@@ -523,9 +528,9 @@ class _MatchupComparison extends StatelessWidget {
               : scoresByUserId[participantA.userId],
           isWinner: participantA?.userId == match.winnerParticipantId,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         _VersusDivider(match: match),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         _CompetitorScoreCard(
           participant: participantB,
           score: participantB == null
@@ -533,7 +538,7 @@ class _MatchupComparison extends StatelessWidget {
               : scoresByUserId[participantB.userId],
           isWinner: participantB?.userId == match.winnerParticipantId,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AppSpacing.lg),
         _PredictionBreakdown(
           participantA: participantA,
           participantB: participantB,
@@ -561,11 +566,11 @@ class _PredictionBreakdown extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -575,9 +580,9 @@ class _PredictionBreakdown extends StatelessWidget {
               PhosphorIcon(
                 PhosphorIcons.checkCircle(),
                 size: 18,
-                color: AppColors.primaryAccent,
+                color: context.tokens.brandOnSurface,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'Placares contabilizados',
@@ -586,7 +591,7 @@ class _PredictionBreakdown extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           if (results.isEmpty)
             Text(
               'Os placares aparecem aqui apos os jogos da rodada terminarem.',
@@ -595,7 +600,7 @@ class _PredictionBreakdown extends StatelessWidget {
           else
             for (final result in results)
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: _PredictionResultRow(
                   result: result,
                   participantA: participantA,
@@ -626,10 +631,10 @@ class _PredictionResultRow extends StatelessWidget {
     final predictionB = _predictionFor(participantB);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +645,7 @@ class _PredictionResultRow extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelLarge,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -649,7 +654,7 @@ class _PredictionResultRow extends StatelessWidget {
                   prediction: predictionA,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _PredictionPill(
                   participant: participantB,
@@ -680,20 +685,22 @@ class _PredictionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    // A prediction that scored is a hit: success state (docs/DESIGN.md).
     final scored = (prediction?.points ?? 0) > 0;
 
     return Container(
       constraints: const BoxConstraints(minHeight: 58),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: scored
-            ? AppColors.primaryAccent.withValues(alpha: .12)
-            : AppColors.background,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: scored ? t.stateFill(t.success) : t.background,
+        borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(
-          color: scored
-              ? AppColors.primaryAccent.withValues(alpha: .35)
-              : Colors.white.withValues(alpha: .05),
+          color: scored ? t.stateBorder(t.success) : t.borderSubtle,
         ),
       ),
       child: Column(
@@ -704,23 +711,17 @@ class _PredictionPill extends StatelessWidget {
             participant?.nick ?? 'A definir',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
+            style: text.labelMedium?.strong.copyWith(color: t.textSecondary),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             prediction == null
                 ? 'Sem palpite'
                 : '${prediction!.predictedHomeScore} x ${prediction!.predictedAwayScore} - ${prediction!.points} pts',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: scored ? AppColors.primaryAccent : AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
+            style: text.labelLarge?.numeric.copyWith(
+              color: scored ? t.success : t.textPrimary,
             ),
           ),
         ],
@@ -744,18 +745,16 @@ class _CompetitorScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEmpty = participant == null;
-    final borderColor = isWinner
-        ? AppColors.primaryAccent.withValues(alpha: .7)
-        : Colors.white.withValues(alpha: .06);
-    final background = isWinner
-        ? AppColors.primaryAccent.withValues(alpha: .1)
-        : AppColors.surface;
+    final t = context.tokens;
+    final hasPoints = isWinner || (score?.points ?? 0) > 0;
+    final borderColor = isWinner ? t.stateBorder(t.brand) : t.borderSubtle;
+    final background = isWinner ? t.stateFill(t.brand) : t.surface;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(color: borderColor),
       ),
       child: Row(
@@ -764,10 +763,8 @@ class _CompetitorScoreCard extends StatelessWidget {
             width: 52,
             child: Text(
               isEmpty ? 'BYE' : '#${participant!.seed}',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: isWinner
-                    ? AppColors.primaryAccent
-                    : AppColors.textPrimary,
+              style: theme.textTheme.titleMedium?.numeric.copyWith(
+                color: isWinner ? t.brandOnSurface : t.textPrimary,
               ),
             ),
           ),
@@ -775,7 +772,7 @@ class _CompetitorScoreCard extends StatelessWidget {
             avatarId: participant?.avatarId ?? 'target',
             photoUrl: participant?.photoUrl,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -786,15 +783,15 @@ class _CompetitorScoreCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
                     PhosphorIcon(
                       PhosphorIcons.target(),
                       size: 14,
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         '${score?.predictionsCount ?? 0} placares - ${score?.exactScores ?? 0} exatos',
@@ -805,15 +802,15 @@ class _CompetitorScoreCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
                     PhosphorIcon(
                       PhosphorIcons.checkCircle(),
                       size: 14,
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         '${score?.correctQualified ?? 0} classificados corretos',
@@ -828,21 +825,18 @@ class _CompetitorScoreCard extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
-              color: isWinner || (score?.points ?? 0) > 0
-                  ? AppColors.primaryAccent
-                  : AppColors.background,
+              color: hasPoints ? t.brand : t.background,
               borderRadius: BorderRadius.circular(AppRadii.pill),
             ),
             child: Text(
               '${score?.points ?? 0} pts',
-              style: TextStyle(
-                color: isWinner || (score?.points ?? 0) > 0
-                    ? Colors.black
-                    : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
+              style: theme.textTheme.labelLarge?.numeric.copyWith(
+                color: hasPoints ? t.onBrand : t.textSecondary,
               ),
             ),
           ),
@@ -861,23 +855,25 @@ class _VersusDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.surfaceElevated)),
+        Expanded(child: Divider(color: context.tokens.surfaceElevated)),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
+            color: context.tokens.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadii.pill),
           ),
           child: Text(
             match.isBye ? 'BYE' : 'VS',
-            style: const TextStyle(
-              color: AppColors.primaryAccent,
-              fontWeight: FontWeight.w900,
+            style: Theme.of(context).textTheme.labelLarge?.strong.copyWith(
+              color: context.tokens.brandOnSurface,
             ),
           ),
         ),
-        const Expanded(child: Divider(color: AppColors.surfaceElevated)),
+        Expanded(child: Divider(color: context.tokens.surfaceElevated)),
       ],
     );
   }
@@ -899,11 +895,14 @@ class _RoundPager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Row(
         children: [
@@ -918,7 +917,8 @@ class _RoundPager extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: rounds.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, index) => _RoundChip(
                   label: rounds[index].label,
                   isActive: index == currentIndex,
@@ -945,20 +945,20 @@ class _RoundChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
+      duration: AppDurations.fast,
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primaryAccent : AppColors.surfaceElevated,
+        color: isActive ? t.brand : t.surfaceElevated,
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: isActive ? Colors.black : AppColors.textPrimary,
-          fontSize: 13,
-          fontWeight: FontWeight.w900,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: isActive ? t.onBrand : t.textPrimary,
         ),
       ),
     );
@@ -972,31 +972,37 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final normalized = status.trim().toLowerCase();
     final isFinished = normalized == 'finished' || normalized == 'done';
+    final isLive = normalized == 'live';
     final label = switch (normalized) {
       'pending' || '' => 'Pendente',
       'live' => 'Live',
       'finished' || 'done' => 'Finalizado',
       _ => status,
     };
-    final color = isFinished
-        ? AppColors.primaryAccent
-        : AppColors.textSecondary;
+    // Same mapping as MatchStatusChip: live, finished (neutral), pending.
+    final color = isLive
+        ? t.live
+        : isFinished
+        ? t.textSecondary
+        : t.pending;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .14),
+        color: t.stateFill(color),
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: color.withValues(alpha: .32)),
+        border: Border.all(color: t.stateBorder(color)),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: isFinished ? AppColors.primaryAccent : AppColors.textSecondary,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
+        style: Theme.of(context).textTheme.labelMedium?.strong.copyWith(
+          color: isFinished ? t.textPrimary : color,
         ),
       ),
     );
@@ -1011,10 +1017,10 @@ class _SurfaceMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );

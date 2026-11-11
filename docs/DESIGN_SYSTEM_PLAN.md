@@ -202,15 +202,55 @@ Basta `import 'package:palpitero/theme/app_theme.dart'`.
 
 ## Checkpoint 4: Migrar telas para os tokens
 **Objetivo:** remover valores avulsos das telas, uma tela por vez.
-- [ ] `login_screen` e `splash_page` (cores `#FFD700`, `#111111`, `#2A2A2A`, `#555555`).
-- [ ] `predictions_screen` (rosa `#E45CFF` do botão "Salvar dia").
-- [ ] `models/avatar_option.dart` (cores dos avatares).
-- [ ] `Colors.white/black` com alpha viram `AppColors.border/overlay`.
-- [ ] `fontSize`/`FontWeight` inline viram estilos do `TextTheme`.
-- [ ] `EdgeInsets`/`SizedBox` viram `AppSpacing`; o `120` da barra de navegação vira constante nomeada.
-- [ ] Goldens revisados a cada tela (diferença visual deve ser intencional).
+- [x] `login_screen` e `splash_page` (cores `#FFD700`, `#111111`, `#2A2A2A`, `#555555`).
+- [x] `predictions_screen` (rosa `#E45CFF` do botão "Salvar dia").
+- [x] `models/avatar_option.dart` (cores dos avatares → `AppAvatarPalette`).
+- [x] `Colors.white/black` com alpha viram tokens (`border`/`borderSubtle`/`borderStrong`, `onBrand`).
+- [x] `fontSize`/`FontWeight` inline viram estilos do `TextTheme` (+ `.numeric`/`.strong`).
+- [x] `EdgeInsets`/`SizedBox` viram `AppSpacing`; o `120` virou `AppSpacing.bottomNavClearance`.
+- [x] Goldens revisados a cada tela (diferença visual deve ser intencional).
+- [x] Extra (previsto para o fim do CP4): `AppColors` e os aliases `AppRadii.card/nav`
+      removidos, `ThemeMode.system` ligado, `Inter-ExtraBold.ttf` removido.
 
-**Pronto quando:** `grep "Color(0x"` e `grep "fontSize:"` fora do tema retornam zero.
+**Pronto quando:** `grep "Color(0x"` e `grep "fontSize:"` fora do tema retornam zero. ✅
+
+**Como foi feito**
+- Troca mecânica por script (cores `AppColors.*` → `context.tokens.*`, bordas brancas com
+  alpha → tokens de borda, raios legados, espaçamentos → `AppSpacing`), depois revisão
+  manual de cada uso de lima, vermelho e peso. As regras de escolha ficaram em
+  [`DESIGN.md`](DESIGN.md) ("Como escolher a cor certa").
+- Espaçamentos fora da escala foram arredondados para o passo mais próximo
+  (2-5 → 4, 6-9 → 8, 10-13 → 12, 14-17 → 16, 18-21 → 20, 22-27 → 24, 28+ → 32).
+  Medidas de componente (bandeira 48, slot do chaveamento 34, avatar, ícones) e a geometria
+  do chaveamento não são espaçamento e ficaram como estão.
+
+**Novos tokens:** `AppTextEmphasis` (`.numeric` w900 para números, `.strong` w700 para
+ênfase/status), `AppSizes.spinner` (18) e `AppOpacity.glass` (.78, fundo da barra de navegação).
+
+**Mudanças visíveis (intencionais, seguem o `DESIGN.md`)**
+- Margem lateral das telas 20 → 16 (`screen`); Splash/Login 24 → 20 (`screenAuth`).
+- Títulos "Palpitero" (Splash 26, Login 24) → `display` 30; "Bem-vindo" 22/w900 → `headline` 24/w700;
+  placar do `MatchCard` e do palpite 28 → 30; "PLAYOFF" 26 → 30.
+- Botões: textos w800/w900 → `button` 16/w700; botões de login com altura 52 (era 50);
+  "Salvar dia" deixa de ser rosa e vira primário (lima).
+- Login: card inferior `#111111` → `surface`; botão do Google `surfaceElevated` com borda `border`;
+  termos `#555555`/11 → `textDisabled`/12; brilho do troféu usa `glowShadow` (Splash e Login iguais);
+  raio do troféu 40/32 → `xl` 32. Erro de login em `error`/`onLoss` (era `live` com texto branco).
+- Ranking: troféu e posição do top 3 em `gold` (eram lima); minha linha com `stateFill/stateBorder(brand)`.
+- Status de jogo: "Today"/pendente em `pending` (era verde/cinza), ao vivo em `live`, fundo `.14`
+  e borda `.70`, texto 12/w700 (era w900). Mesmo visual no mata-mata.
+- Resultados e mata-mata: placar exato e palpite que pontuou em `success` (eram lima).
+- Chaveamento: slots comuns com borda neutra `borderStrong` (era lima .5); raio 8 → `sm`.
+- Faixa da competição na Home: borda neutra (era lima .2).
+- Barra de navegação: margem 20 → 16, sombra `floatingShadow` (só no claro), transição 180 → 150 ms.
+- Chips de rodada (mata-mata) com peso w500 (eram w900).
+
+**Testes**
+- Goldens agora rodam nos dois temas: 4 escuros (mesmos nomes) + 4 claros (`*_light.png`).
+  Os 4 escuros foram regenerados (novo baseline).
+- Resultado: `analyze` só com o aviso conhecido; **95 passando, 8 pulados** (goldens fora do
+  `RUN_GOLDENS`); 8/8 goldens ok.
+- Pendente: conferir em aparelho real o tema claro seguindo o sistema.
 
 ## Checkpoint 5: Componentes base
 **Objetivo:** blocos reutilizáveis que só leem tokens.
@@ -244,7 +284,7 @@ Basta `import 'package:palpitero/theme/app_theme.dart'`.
 - [ ] `DESIGN.md`: princípios, tokens, quando usar cada componente, o que nunca fazer.
 - [ ] Checklist de PR para telas novas.
 - [ ] Rodar o lint no CI (`.github/`).
-- [ ] Ligar `ThemeMode.system` (`AppTheme.mode`) e remover `Inter-ExtraBold.ttf` se o CP4 não tiver feito.
+- [x] Ligar `ThemeMode.system` (`AppTheme.mode`) e remover `Inter-ExtraBold.ttf` (feito no CP4).
 
 ## Checkpoint 9 (opcional): Performance ligada ao design
 **Objetivo:** ganhos de desempenho identificados na auditoria, depois do design estável.

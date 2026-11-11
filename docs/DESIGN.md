@@ -159,12 +159,29 @@ Desde o Checkpoint 3, um único import: `package:palpitero/theme/app_theme.dart`
 | `AppTypography` | Escala de texto | Pelo tema: `Theme.of(context).textTheme.titleMedium` |
 | `AppSpacing` | 4…32, `screen`, `cardGap`, `bottomNavClearance` | `EdgeInsets.all(AppSpacing.lg)` |
 | `AppRadii` | `sm`, `md`, `lg`, `xl`, `pill` | `BorderRadius.circular(AppRadii.md)` |
-| `AppSizes` | `buttonHeight` 52, `minTouchTarget` 48 | |
+| `AppSizes` | `buttonHeight` 52, `minTouchTarget` 48, `spinner` 18 | |
 | `AppDurations` | `fast` 150, `medium` 250, `slow` 400 ms | |
-| `AppOpacity` | `.06` `.08` `.12` `.14` `.35` `.38` `.70` | `color.withValues(alpha: AppOpacity.stateFill)` |
+| `AppOpacity` | `.06` `.08` `.12` `.14` `.35` `.38` `.70` `.78` (`glass`, barra de navegação) | `color.withValues(alpha: AppOpacity.stateFill)` |
+| `AppTextEmphasis` | `.numeric` (w900), `.strong` (w700) | `textTheme.labelLarge?.numeric`: única forma de mudar peso |
 | `AppAvatarPalette` | 6 cores de avatar | Só dentro do avatar |
 
-`AppColors` é legado (só escuro) e não deve ser usado em código novo.
+Desde o Checkpoint 4 as telas leem cor só por `context.tokens` (o `AppColors` legado foi
+removido) e o app segue o tema do sistema.
+
+### Como escolher a cor certa (decisões do Checkpoint 4)
+- **Lima como preenchimento** (botão, chip ativo, aba ativa, pílula de pontos): `brand` com
+  texto `onBrand`. **Lima como texto ou ícone**: `brandOnSurface`.
+- **Destaque do usuário/vencedor** (minha linha no ranking, vencedor do confronto, slot da
+  final): `stateFill(brand)` + `stateBorder(brand)`.
+- **Acerto** (placar exato, palpite que pontuou, resultado confirmado): `success` e seus
+  `stateFill`/`stateBorder`. Não é lima.
+- **Pódio** (troféu e posição do top 3): `gold`.
+- **Status de jogo**: ao vivo = `live`; agendado/pendente = `pending`; encerrado = neutro
+  (`textSecondary` no fundo/borda, `textPrimary` no texto). Mesmo mapeamento no `MatchCard` e
+  no mata-mata.
+- **Erro** (snackbar, mensagem): `error` com texto `onLoss`, nunca `live`.
+- Borda de lima "decorativa" (faixa da competição, slots comuns do chaveamento) virou borda
+  neutra (`border`/`borderStrong`): lima não decora.
 
 ### O que nunca fazer
 - Usar lima como texto no tema claro.

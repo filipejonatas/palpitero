@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: LogoutCircleButton(
               sessionController: widget.sessionController,
             ),
@@ -71,10 +71,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             _UserSummary(user: user),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             OutlinedButton.icon(
               onPressed: _isPhotoUploading || widget.sessionController.isLoading
                   ? null
@@ -90,15 +95,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _isPhotoUploading ? 'Enviando foto...' : 'Alterar foto',
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _StatsGrid(entry: _userStats, isLoading: _isStatsLoading),
             if (_statsError != null) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.md),
               _SurfaceMessage(message: _statsError!),
             ],
-            const SizedBox(height: 22),
+            const SizedBox(height: AppSpacing.xxl),
             Text('Nick no ranking', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _nickController,
               maxLength: 24,
@@ -107,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 counterText: '',
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             FilledButton.icon(
               onPressed: widget.sessionController.isLoading ? null : _save,
               icon: widget.sessionController.isLoading
@@ -123,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : 'Salvar perfil',
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             OutlinedButton.icon(
               onPressed: widget.sessionController.isLoading
                   ? null
@@ -131,13 +136,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: PhosphorIcon(PhosphorIcons.signOut()),
               label: const Text('Sair'),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             Text('Historico', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md),
             if (_isStatsLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: EdgeInsets.all(AppSpacing.xxl),
                   child: CircularProgressIndicator(),
                 ),
               )
@@ -148,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             else
               for (final item in _history) ...[
                 _HistoryTile(item: item),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.md),
               ],
           ],
         ),
@@ -327,22 +332,22 @@ class _UserSummary extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Row(
         children: [
           _ProfilePhoto(photoUrl: user.photoUrl, radius: 36),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(user.nick, style: theme.textTheme.titleLarge),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   user.email,
                   maxLines: 1,
@@ -370,14 +375,14 @@ class _ProfilePhoto extends StatelessWidget {
 
     return CircleAvatar(
       radius: radius,
-      backgroundColor: AppColors.surfaceElevated,
+      backgroundColor: context.tokens.surfaceElevated,
       foregroundImage: imageUrl == null || imageUrl.isEmpty
           ? null
           : NetworkImage(imageUrl),
       child: imageUrl == null || imageUrl.isEmpty
           ? PhosphorIcon(
               PhosphorIcons.userCircle(),
-              color: AppColors.textSecondary,
+              color: context.tokens.textSecondary,
               size: radius,
             )
           : null,
@@ -429,22 +434,22 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             value,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: AppColors.primaryAccent),
+            style: Theme.of(context).textTheme.titleLarge?.numeric.copyWith(
+              color: context.tokens.brandOnSurface,
+            ),
           ),
         ],
       ),
@@ -460,24 +465,24 @@ class _HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
           PhosphorIcon(
             PhosphorIcons.clockCounterClockwise(),
-            color: AppColors.secondaryAccent,
+            color: context.tokens.pending,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   item.subtitle,
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -522,11 +527,11 @@ class _SurfaceMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../theme/app_theme.dart';
+
 class AvatarOption {
   const AvatarOption({
     required this.id,
@@ -17,32 +19,32 @@ const avatarOptions = [
   AvatarOption(
     id: 'star',
     icon: PhosphorIconsRegular.star,
-    color: Color(0xFFC6F135),
+    color: AppAvatarPalette.lime,
   ),
   AvatarOption(
     id: 'ball',
     icon: PhosphorIconsRegular.soccerBall,
-    color: Color(0xFF00C896),
+    color: AppAvatarPalette.green,
   ),
   AvatarOption(
     id: 'cup',
     icon: PhosphorIconsRegular.trophy,
-    color: Color(0xFFD79222),
+    color: AppAvatarPalette.amber,
   ),
   AvatarOption(
     id: 'target',
     icon: PhosphorIconsRegular.crosshair,
-    color: Color(0xFFFF3B30),
+    color: AppAvatarPalette.red,
   ),
   AvatarOption(
     id: 'goal',
     icon: PhosphorIconsRegular.flag,
-    color: Color(0xFF49A7FF),
+    color: AppAvatarPalette.blue,
   ),
   AvatarOption(
     id: 'voice',
     icon: PhosphorIconsRegular.megaphone,
-    color: Color(0xFFB58CFF),
+    color: AppAvatarPalette.violet,
   ),
 ];
 

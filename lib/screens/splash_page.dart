@@ -14,13 +14,21 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: t.background,
       body: SafeArea(
         top: true,
         bottom: true,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenAuth,
+            AppSpacing.xxl,
+            AppSpacing.screenAuth,
+            AppSpacing.xl,
+          ),
           child: Column(
             children: [
               const Spacer(),
@@ -28,17 +36,11 @@ class SplashPage extends StatelessWidget {
                     width: 180,
                     height: 180,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFFD700).withValues(alpha: .3),
-                          blurRadius: 40,
-                          spreadRadius: 10,
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(AppRadii.xl),
+                      boxShadow: t.glowShadow,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(40),
+                      borderRadius: BorderRadius.circular(AppRadii.xl),
                       child: Image.asset(
                         'assets/images/trophy_icon.png',
                         width: 180,
@@ -55,27 +57,20 @@ class SplashPage extends StatelessWidget {
                     curve: Curves.easeOutBack,
                   )
                   .fadeIn(duration: 600.ms),
-              const SizedBox(height: 30),
+              const SizedBox(height: AppSpacing.xxxl),
               Text(
                     'Palpitero',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                    ),
+                    style: text.headlineMedium,
                   )
                   .animate()
                   .fadeIn(delay: 400.ms, duration: 420.ms)
                   .slideY(begin: .2, end: 0, duration: 420.ms),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                     'Faça seus palpites da Copa 2026',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
+                    style: text.bodyMedium,
                   )
                   .animate()
                   .fadeIn(delay: 460.ms, duration: 420.ms)
@@ -85,21 +80,15 @@ class SplashPage extends StatelessWidget {
                 Text(
                   errorMessage!,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.liveBadge,
-                    fontSize: 14,
-                  ),
+                  style: text.bodyMedium?.copyWith(color: t.error),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.md),
               ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: isBusy ? null : () => context.go('/login'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryAccent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadii.pill),
                     ),
@@ -108,29 +97,18 @@ class SplashPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        isBusy ? 'Carregando...' : 'Começar',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                      Text(isBusy ? 'Carregando...' : 'Começar'),
+                      const SizedBox(width: AppSpacing.sm),
                       if (isBusy)
-                        const SizedBox(
-                          width: 18,
-                          height: 18,
+                        SizedBox.square(
+                          dimension: AppSizes.spinner,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: t.onBrand,
                           ),
                         )
                       else
-                        PhosphorIcon(
-                          PhosphorIcons.arrowRight(),
-                          color: Colors.black,
-                        ),
+                        PhosphorIcon(PhosphorIcons.arrowRight()),
                     ],
                   ),
                 ),

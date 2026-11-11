@@ -62,7 +62,7 @@ class _PlayoffScreenState extends State<PlayoffScreen> {
         title: const Text('Mata-Mata'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: LogoutCircleButton(
               sessionController: widget.sessionController,
             ),
@@ -72,16 +72,21 @@ class _PlayoffScreenState extends State<PlayoffScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             Text(
               'Mata-Mata da Copa do Mundo : Onde o filho chora e a mãe não vê',
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineMedium?.copyWith(height: 1.04),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             const _RulesPanel(),
-            const SizedBox(height: 18),
+            const SizedBox(height: AppSpacing.xl),
             FilledButton.icon(
               onPressed: _isLoading
                   ? null
@@ -89,15 +94,15 @@ class _PlayoffScreenState extends State<PlayoffScreen> {
               icon: PhosphorIcon(PhosphorIcons.target()),
               label: const Text('Visualizar Confrontos'),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: AppSpacing.xl),
             Row(
               children: [
                 PhosphorIcon(
                   PhosphorIcons.target(),
                   size: 18,
-                  color: AppColors.primaryAccent,
+                  color: context.tokens.brandOnSurface,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     _isLoading
@@ -110,11 +115,11 @@ class _PlayoffScreenState extends State<PlayoffScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             if (_isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: EdgeInsets.all(AppSpacing.xxxl),
                   child: CircularProgressIndicator(),
                 ),
               )
@@ -227,24 +232,24 @@ class _RulesPanel extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Pontuação do mata-mata', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           const _RuleLine(text: 'Base: 5 / 7 / 10 pts'),
           const _RuleLine(text: 'Semifinal: 10 / 14 / 20 pts'),
           const _RuleLine(
             text: 'Terceiro: 13 / 18 / 25 pts; final: 15 / 21 / 30 pts',
           ),
-          const SizedBox(height: 10),
-          Divider(color: Colors.white.withValues(alpha: .08), height: 18),
+          const SizedBox(height: AppSpacing.md),
+          Divider(color: context.tokens.border, height: 18),
           const _RuleLine(
             text:
                 'Seed é a posição no ranking geral no fechamento da chave. Se faltar player, os melhores seeds recebem bye e avançam direto.',
@@ -269,20 +274,20 @@ class _RuleLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 6,
             height: 6,
-            margin: const EdgeInsets.only(top: 7),
-            decoration: const BoxDecoration(
-              color: AppColors.primaryAccent,
+            margin: const EdgeInsets.only(top: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: context.tokens.brandOnSurface,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
           ),
@@ -378,13 +383,13 @@ class _PreviewBracketState extends State<_PreviewBracket> {
         });
 
         return ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadii.card),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           child: Container(
-            color: AppColors.surface,
+            color: context.tokens.surface,
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: SizedBox(
                 width: bracketViewportWidth,
                 height: 690,
@@ -395,7 +400,13 @@ class _PreviewBracketState extends State<_PreviewBracket> {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: CustomPaint(painter: _BracketLinesPainter()),
+                          child: CustomPaint(
+                            painter: _BracketLinesPainter(
+                              color: context.tokens.stateBorder(
+                                context.tokens.brandOnSurface,
+                              ),
+                            ),
+                          ),
                         ),
                         Positioned(
                           top: 22,
@@ -502,25 +513,29 @@ class _PlayerSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final label = Theme.of(context).textTheme.labelMedium;
     final background = participant.isBye
-        ? AppColors.background
+        ? t.background
         : isAdvanced
-        ? AppColors.primaryAccent
-        : AppColors.surfaceElevated;
-    final foreground = isAdvanced ? Colors.black : AppColors.textPrimary;
-    final secondary = isAdvanced ? Colors.black87 : AppColors.textSecondary;
+        ? t.brand
+        : t.surfaceElevated;
+    final foreground = isAdvanced ? t.onBrand : t.textPrimary;
+    final secondary = isAdvanced ? t.onBrand : t.textSecondary;
 
     return Container(
       width: width,
       height: 34,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.sm),
         border: Border.all(
           color: participant.isBye
-              ? Colors.white.withValues(alpha: .08)
-              : AppColors.primaryAccent.withValues(alpha: isAdvanced ? .9 : .5),
+              ? t.border
+              : isAdvanced
+              ? t.brand
+              : t.borderStrong,
         ),
       ),
       child: Row(
@@ -528,34 +543,24 @@ class _PlayerSlot extends StatelessWidget {
         children: [
           Text(
             participant.seed <= 0 ? '--' : '#${participant.seed}',
-            style: TextStyle(
-              color: secondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-            ),
+            style: label?.numeric.copyWith(color: secondary),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               participant.nick,
               textAlign: alignRight ? TextAlign.right : TextAlign.left,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: participant.isBye ? AppColors.textSecondary : foreground,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
+              style: label?.strong.copyWith(
+                color: participant.isBye ? t.textSecondary : foreground,
               ),
             ),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             '${participant.score}',
-            style: TextStyle(
-              color: foreground,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
+            style: label?.numeric.copyWith(color: foreground),
           ),
         ],
       ),
@@ -606,13 +611,13 @@ class _OfficialBracketState extends State<_OfficialBracket> {
             : 1120.0;
 
         return ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadii.card),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           child: Container(
-            color: AppColors.surface,
+            color: context.tokens.surface,
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: SizedBox(
                 width: bracketViewportWidth,
                 height: 690,
@@ -623,7 +628,13 @@ class _OfficialBracketState extends State<_OfficialBracket> {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: CustomPaint(painter: _BracketLinesPainter()),
+                          child: CustomPaint(
+                            painter: _BracketLinesPainter(
+                              color: context.tokens.stateBorder(
+                                context.tokens.brandOnSurface,
+                              ),
+                            ),
+                          ),
                         ),
                         Positioned(
                           top: 22,
@@ -890,24 +901,22 @@ class _FinalSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return Container(
       width: 92,
       height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.primaryAccent.withValues(alpha: .12),
+        color: t.stateFill(t.brand),
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(
-          color: AppColors.primaryAccent.withValues(alpha: .45),
-        ),
+        border: Border.all(color: t.stateBorder(t.brand)),
       ),
-      child: const Text(
+      child: Text(
         'FINAL',
-        style: TextStyle(
-          color: AppColors.primaryAccent,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.strong.copyWith(color: t.brandOnSurface),
       ),
     );
   }
@@ -920,25 +929,21 @@ class _CenterBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return Column(
       children: [
         Text(
           'PLAYOFF',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppColors.textPrimary,
-            fontSize: 26,
-            letterSpacing: 0,
-          ),
+          style: text.headlineMedium,
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           '$participantsCount/32 players',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: AppColors.primaryAccent,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
+          style: text.labelMedium?.numeric.copyWith(
+            color: context.tokens.brandOnSurface,
           ),
         ),
       ],
@@ -947,10 +952,14 @@ class _CenterBadge extends StatelessWidget {
 }
 
 class _BracketLinesPainter extends CustomPainter {
+  _BracketLinesPainter({required this.color});
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.primaryAccent.withValues(alpha: .7)
+      ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -1015,5 +1024,6 @@ class _BracketLinesPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BracketLinesPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

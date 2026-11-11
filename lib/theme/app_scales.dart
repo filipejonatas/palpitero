@@ -46,12 +46,6 @@ abstract final class AppRadii {
 
   /// Chips, status pills.
   static const pill = 100.0;
-
-  /// Legacy alias of [md]; screens migrate in Checkpoint 4.
-  static const card = md;
-
-  /// Legacy alias of [lg]; screens migrate in Checkpoint 4.
-  static const nav = lg;
 }
 
 /// Fixed component sizes.
@@ -61,6 +55,9 @@ abstract final class AppSizes {
 
   /// Height of primary/secondary/outline buttons.
   static const buttonHeight = 52.0;
+
+  /// Progress indicator inside a button or chip.
+  static const spinner = 18.0;
 }
 
 /// Motion durations: short and functional.
@@ -97,6 +94,9 @@ abstract final class AppOpacity {
 
   /// Border of a state (e.g. exact-hit card).
   static const stateBorder = .70;
+
+  /// Surface behind a blurred floating bar (navigation bar).
+  static const glass = .78;
 }
 
 /// Closed type scale (docs/DESIGN.md, "Tipografia").
@@ -165,6 +165,20 @@ abstract final class AppTypography {
 
   /// Button text (same as [titleSmall]).
   static const button = titleSmall;
+}
+
+/// The only weight changes allowed on top of a scale style
+/// (docs/DESIGN.md, "Peso conta a hierarquia").
+///
+/// ```dart
+/// Text('12 pts', style: textTheme.labelLarge?.numeric)
+/// ```
+extension AppTextEmphasis on TextStyle {
+  /// Numbers: score, ranking position, points. w900.
+  TextStyle get numeric => copyWith(fontWeight: FontWeight.w900);
+
+  /// Emphasis inside a label or running text (link, eyebrow, status). w700.
+  TextStyle get strong => copyWith(fontWeight: FontWeight.w700);
 }
 
 /// Avatar colors. Not interface colors: use only inside the avatar.

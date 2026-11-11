@@ -6,21 +6,6 @@ import 'app_tokens.dart';
 export 'app_scales.dart';
 export 'app_tokens.dart';
 
-/// Legacy, dark-only colors still read directly by the screens.
-///
-/// Do not use in new code: read `context.tokens` instead. Screens migrate in
-/// Checkpoint 4 and this class is removed then (docs/DESIGN_SYSTEM_PLAN.md).
-abstract final class AppColors {
-  static const background = Color(0xFF0D0D0D);
-  static const surface = Color(0xFF1A1A1A);
-  static const surfaceElevated = Color(0xFF222222);
-  static const primaryAccent = Color(0xFFC6F135);
-  static const secondaryAccent = Color(0xFF00C896);
-  static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFF8A8A8A);
-  static const liveBadge = Color(0xFFFF3B30);
-}
-
 /// Builds the Palpitero light and dark themes from the same structure.
 ///
 /// Both themes share layout, radii and typography; only colors change
@@ -29,11 +14,9 @@ abstract final class AppTheme {
   /// Family declared in pubspec.yaml (assets/fonts).
   static const fontFamily = AppTypography.fontFamily;
 
-  /// Theme mode used by the app.
-  ///
-  /// Stays [ThemeMode.dark] until the screens stop reading the dark-only
-  /// [AppColors] (Checkpoint 4); then it becomes [ThemeMode.system].
-  static const mode = ThemeMode.dark;
+  /// Theme mode used by the app: follows the system (docs/DESIGN.md,
+  /// "Modo de tema"). Screens read colors only through `context.tokens`.
+  static const mode = ThemeMode.system;
 
   static ThemeData dark() => _build(Brightness.dark, AppTokens.dark);
 

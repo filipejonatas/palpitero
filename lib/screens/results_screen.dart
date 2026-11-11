@@ -50,19 +50,24 @@ class _ResultsScreenState extends State<ResultsScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             Text('Calendario oficial', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Placares e status da fase de grupos em tempo real.',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: EdgeInsets.all(AppSpacing.xxxl),
                   child: CircularProgressIndicator(),
                 ),
               )
@@ -70,10 +75,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
               const _SurfaceMessage(message: 'Nenhum resultado encontrado.')
             else ...[
               Text(visibleDay!.label, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               for (final match in visibleDay.matches)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child:
                       MatchCard(
                             match: match,
@@ -167,7 +172,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.tokens.surface,
       isScrollControlled: true,
       builder: (context) => _PredictionResultsSheet(
         predictionService: _predictionService,
@@ -206,10 +211,10 @@ class _ResultActions extends StatelessWidget {
               : PhosphorIcons.clock(),
           size: 16,
           color: match.isFinished
-              ? AppColors.primaryAccent
-              : AppColors.textSecondary,
+              ? context.tokens.success
+              : context.tokens.textSecondary,
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             match.isFinished
@@ -258,7 +263,12 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screen,
+          AppSpacing.lg,
+          AppSpacing.screen,
+          AppSpacing.xxl,
+        ),
         child: FutureBuilder<MatchPredictionResults>(
           future: _future,
           builder: (context, snapshot) {
@@ -293,12 +303,12 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
                     '${result.homeTeam} ${result.homeScore} x ${result.awayScore} ${result.awayTeam}',
                     style: theme.textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     '${result.predictions.length} palpites salvos',
                     style: theme.textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   if (result.predictions.isEmpty)
                     const _SurfaceMessage(
                       message: 'Nenhum palpite salvo para este jogo.',
@@ -323,30 +333,34 @@ class _PublicPredictionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final scored = prediction.points > 0;
+    // Exact score is a hit: success state (docs/DESIGN.md, "Semânticas").
     final highlight = prediction.exactScore
-        ? AppColors.primaryAccent.withValues(alpha: .14)
-        : AppColors.surfaceElevated;
+        ? t.stateFill(t.success)
+        : t.surfaceElevated;
     final border = prediction.exactScore
-        ? AppColors.primaryAccent.withValues(alpha: .7)
-        : Colors.white.withValues(alpha: .06);
+        ? t.stateBorder(t.success)
+        : t.borderSubtle;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: highlight,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(color: border),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.background,
-            foregroundColor: AppColors.primaryAccent,
-            child: Text(_initial),
+            backgroundColor: t.background,
+            foregroundColor: t.brandOnSurface,
+            child: Text(_initial, style: text.titleMedium),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,31 +369,29 @@ class _PublicPredictionTile extends StatelessWidget {
                   prediction.nick,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: text.titleMedium,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${prediction.predictedHomeScore} x ${prediction.predictedAwayScore}',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: text.bodyMedium,
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
-              color: prediction.points > 0
-                  ? AppColors.primaryAccent
-                  : AppColors.background,
+              color: scored ? t.brand : t.background,
               borderRadius: BorderRadius.circular(AppRadii.pill),
             ),
             child: Text(
               '${prediction.points} pts',
-              style: TextStyle(
-                color: prediction.points > 0
-                    ? Colors.black
-                    : AppColors.textSecondary,
-                fontWeight: FontWeight.w900,
+              style: text.labelLarge?.numeric.copyWith(
+                color: scored ? t.onBrand : t.textSecondary,
               ),
             ),
           ),
@@ -418,10 +430,13 @@ class _MatchDaysPager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -456,10 +471,10 @@ class _SurfaceMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );

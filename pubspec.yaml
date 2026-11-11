@@ -84,7 +84,7 @@ flutter:
     - assets/flags/
 
   # Inter 4.1 (SIL OFL 1.1, veja assets/fonts/OFL.txt).
-  # w800 so existe ate a migracao do Checkpoint 4 (escala do DESIGN.md: 400/500/700/900).
+  # Somente os pesos da escala do DESIGN.md: 400/500/700/900.
   fonts:
     - family: Inter
       fonts:
@@ -94,8 +94,6 @@ flutter:
           weight: 500
         - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Inter-ExtraBold.ttf
-          weight: 800
         - asset: assets/fonts/Inter-Black.ttf
           weight: 900
 

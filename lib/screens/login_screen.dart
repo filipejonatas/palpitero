@@ -121,7 +121,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         top: true,
         bottom: true,
@@ -156,7 +156,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   child: Column(
                     children: [
                       const Padding(
-                        padding: EdgeInsets.fromLTRB(24, 24, 24, 18),
+                        padding: EdgeInsets.fromLTRB(
+                          AppSpacing.screenAuth,
+                          AppSpacing.xxl,
+                          AppSpacing.screenAuth,
+                          AppSpacing.xl,
+                        ),
                         child: _LoginHero(),
                       ),
                       bottomCard,
@@ -171,7 +176,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const Expanded(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.screenAuth,
+                      ),
                       child: _LoginHero(),
                     ),
                   ),
@@ -221,7 +228,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   void _showLoginError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(backgroundColor: AppColors.liveBadge, content: Text(message)),
+      SnackBar(
+        backgroundColor: context.tokens.error,
+        content: Text(message, style: TextStyle(color: context.tokens.onLoss)),
+      ),
     );
   }
 }
@@ -231,6 +241,8 @@ class _LoginHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -238,17 +250,11 @@ class _LoginHero extends StatelessWidget {
           width: 140,
           height: 140,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFD700).withValues(alpha: .25),
-                blurRadius: 30,
-                spreadRadius: 8,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppRadii.xl),
+            boxShadow: context.tokens.glowShadow,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(AppRadii.xl),
             child: Image.asset(
               'assets/images/trophy_icon.png',
               width: 140,
@@ -257,21 +263,17 @@ class _LoginHero extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        const Text(
+        const SizedBox(height: AppSpacing.xxl),
+        Text(
           'Palpitero',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-          ),
+          style: text.headlineMedium,
         ),
-        const SizedBox(height: 8),
-        const Text(
+        const SizedBox(height: AppSpacing.sm),
+        Text(
           'Entre para fazer seus palpites',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          style: text.bodyMedium,
         ),
       ],
     ).animate().fadeIn(duration: 500.ms);
@@ -299,14 +301,23 @@ class _LoginBottomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
     final isLoading = notifier.isLoading;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
-      decoration: const BoxDecoration(
-        color: Color(0xFF111111),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenAuth,
+        AppSpacing.md,
+        AppSpacing.screenAuth,
+        AppSpacing.xxxl,
+      ),
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadii.lg),
+        ),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -316,51 +327,42 @@ class _LoginBottomCard extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
+                color: t.surfaceElevated,
                 borderRadius: BorderRadius.circular(AppRadii.pill),
               ),
             ),
-            const SizedBox(height: 22),
-            const Text(
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
               'Bem-vindo',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
+              style: text.titleLarge,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: AppSpacing.sm),
+            Text(
               'Acesse sua conta para registrar e acompanhar seus palpites.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: text.bodyMedium,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             _GoogleSignInButton(
               isLoading:
                   isLoading && notifier.loadingAction == LoginAction.google,
               onPressed: isLoading ? null : onGoogleSignIn,
             ).animate().fadeIn(delay: 500.ms, duration: 350.ms),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
-                Expanded(
-                  child: Divider(color: Colors.white.withValues(alpha: .08)),
-                ),
+                const Expanded(child: Divider()),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    'ou',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
                   ),
+                  child: Text('ou', style: text.bodyMedium),
                 ),
-                Expanded(
-                  child: Divider(color: Colors.white.withValues(alpha: .08)),
-                ),
+                const Expanded(child: Divider()),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.lg),
             TextField(
               controller: emailController,
               enabled: !isLoading,
@@ -368,7 +370,7 @@ class _LoginBottomCard extends StatelessWidget {
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(hintText: 'Email'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md),
             TextField(
               controller: passwordController,
               enabled: !isLoading,
@@ -379,26 +381,23 @@ class _LoginBottomCard extends StatelessWidget {
                 if (!isLoading) onEmailSignIn();
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             SwitchListTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: createAccount,
-              activeThumbColor: AppColors.primaryAccent,
-              title: const Text(
-                'Criar nova conta',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
-              ),
+              activeThumbColor: t.brand,
+              title: Text('Criar nova conta', style: text.labelLarge),
               onChanged: isLoading ? null : onCreateAccountChanged,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             _EmailSignInButton(
               label: createAccount ? 'Criar conta' : 'Entrar com email',
               isLoading:
                   isLoading && notifier.loadingAction == LoginAction.email,
               onPressed: isLoading ? null : onEmailSignIn,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const _TermsText(),
           ],
         ),
@@ -415,10 +414,12 @@ class _GoogleSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return _AuthButton(
-      backgroundColor: AppColors.surface,
-      foregroundColor: AppColors.textPrimary,
-      borderColor: const Color(0xFF2A2A2A),
+      backgroundColor: t.surfaceElevated,
+      foregroundColor: t.textPrimary,
+      borderColor: t.border,
       isLoading: isLoading,
       onPressed: onPressed,
       child: Row(
@@ -429,13 +430,12 @@ class _GoogleSignInButton extends StatelessWidget {
             width: 22,
             height: 22,
           ),
-          const SizedBox(width: 12),
-          const Text(
-            'Continuar com o Google',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
+          const SizedBox(width: AppSpacing.md),
+          const Flexible(
+            child: Text(
+              'Continuar com o Google',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -457,20 +457,15 @@ class _EmailSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return _AuthButton(
-      backgroundColor: AppColors.primaryAccent,
-      foregroundColor: Colors.black,
-      borderColor: AppColors.primaryAccent,
+      backgroundColor: t.brand,
+      foregroundColor: t.onBrand,
+      borderColor: t.brand,
       isLoading: isLoading,
       onPressed: onPressed,
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 15,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
+      child: Text(label),
     );
   }
 }
@@ -503,23 +498,27 @@ class _AuthButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadii.pill),
           onTap: onPressed,
           child: Container(
-            height: 50,
+            height: AppSizes.buttonHeight,
             alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadii.pill),
               border: Border.all(color: borderColor),
             ),
             child: isLoading
-                ? SizedBox(
-                    width: 22,
-                    height: 22,
+                ? SizedBox.square(
+                    dimension: AppSizes.spinner,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       color: foregroundColor,
                     ),
                   )
-                : child,
+                : DefaultTextStyle.merge(
+                    style: AppTypography.button.copyWith(
+                      color: foregroundColor,
+                    ),
+                    child: child,
+                  ),
           ),
         ),
       ),
@@ -532,17 +531,17 @@ class _TermsText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+    final caption = Theme.of(context).textTheme.bodySmall;
+
     return Text.rich(
       TextSpan(
         text: 'Ao continuar, você aceita nossos ',
-        style: const TextStyle(color: Color(0xFF555555), fontSize: 11),
+        style: caption?.copyWith(color: t.textDisabled),
         children: [
           TextSpan(
             text: 'Termos de Uso',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w700,
-            ),
+            style: caption?.strong.copyWith(color: t.textSecondary),
             recognizer: TapGestureRecognizer()..onTap = () {},
           ),
         ],

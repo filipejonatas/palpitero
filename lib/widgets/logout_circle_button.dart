@@ -12,15 +12,17 @@ class LogoutCircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return IconButton(
       tooltip: 'Sair',
       onPressed: sessionController.isLoading ? null : sessionController.signOut,
       style: IconButton.styleFrom(
-        backgroundColor: AppColors.surfaceElevated,
-        foregroundColor: AppColors.primaryAccent,
-        disabledForegroundColor: AppColors.textSecondary,
+        backgroundColor: t.surfaceElevated,
+        foregroundColor: t.brandOnSurface,
+        disabledForegroundColor: t.textDisabled,
         shape: const CircleBorder(),
-        side: BorderSide(color: Colors.white.withValues(alpha: .08)),
+        side: BorderSide(color: t.border),
       ),
       icon: PhosphorIcon(PhosphorIcons.signOut()),
     );

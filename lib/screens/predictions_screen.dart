@@ -54,7 +54,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
         title: const Text('Matches'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: LogoutCircleButton(
               sessionController: widget.sessionController,
             ),
@@ -64,26 +64,31 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             Text(
               'Mata-mata',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.primaryAccent,
+                color: context.tokens.brandOnSurface,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text('Seus palpites', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Ajuste o placar de 0 a 9 antes da bola rolar.',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: EdgeInsets.all(AppSpacing.xxxl),
                   child: CircularProgressIndicator(),
                 ),
               )
@@ -94,15 +99,10 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFE45CFF),
-                      foregroundColor: Colors.black,
-                    ),
                     onPressed: _canSaveAll ? _saveAllPredictions : null,
                     icon: _isSavingAll
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
+                        ? const SizedBox.square(
+                            dimension: AppSizes.spinner,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : PhosphorIcon(PhosphorIcons.floppyDisk()),
@@ -111,12 +111,12 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: AppSpacing.xl),
                 Text(visibleDay!.label, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 for (final match in visibleDay.matches)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: _PredictionCard(
                       key: ValueKey(match.fixtureId),
                       match: match,
@@ -435,7 +435,7 @@ class _PredictionCardState extends State<_PredictionCard> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: _ScoreStepper(
                   label: widget.match.awayTeam,
@@ -449,7 +449,7 @@ class _PredictionCardState extends State<_PredictionCard> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.lg),
           if (_shouldAskQualifiedPick) ...[
             _QualifiedPickSelector(
               homeTeam: widget.match.homeTeam,
@@ -461,14 +461,13 @@ class _PredictionCardState extends State<_PredictionCard> {
                 widget.onDraftChanged(_draftPrediction);
               },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.lg),
           ],
           FilledButton.icon(
             onPressed: canEdit ? () => widget.onSave(prediction) : null,
             icon: widget.isSaving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
+                ? const SizedBox.square(
+                    dimension: AppSizes.spinner,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : PhosphorIcon(PhosphorIcons.checkCircle()),
@@ -481,14 +480,14 @@ class _PredictionCardState extends State<_PredictionCard> {
             ),
           ),
           if (widget.isLocked) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md),
             Text(
               'Palpites encerrados para este jogo.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
           if (widget.savedPrediction != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md),
             Text(
               'Salvo: ${_predictionLabel(widget.savedPrediction!)}',
               style: Theme.of(context).textTheme.bodyMedium,
@@ -557,10 +556,10 @@ class _QualifiedPickSelector extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -568,12 +567,11 @@ class _QualifiedPickSelector extends StatelessWidget {
           Text(
             'Em caso de penaltis, quem passa?',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryAccent,
-              fontWeight: FontWeight.w800,
+            style: theme.textTheme.bodyMedium?.strong.copyWith(
+              color: context.tokens.brandOnSurface,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           Center(
             child: SegmentedButton<MatchPick>(
               segments: [
@@ -624,10 +622,10 @@ class _ScoreStepper extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Column(
         children: [
@@ -637,7 +635,7 @@ class _ScoreStepper extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -652,7 +650,7 @@ class _ScoreStepper extends StatelessWidget {
                 child: Text(
                   '$value',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.titleLarge?.copyWith(fontSize: 28),
+                  style: theme.textTheme.headlineMedium,
                 ),
               ),
               _StepButton(
@@ -691,9 +689,9 @@ class _StepButton extends StatelessWidget {
         minimumSize: const Size.square(40),
         fixedSize: const Size.square(40),
         padding: EdgeInsets.zero,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.primaryAccent,
-        disabledForegroundColor: AppColors.textSecondary,
+        backgroundColor: context.tokens.background,
+        foregroundColor: context.tokens.brandOnSurface,
+        disabledForegroundColor: context.tokens.textDisabled,
       ),
       icon: PhosphorIcon(icon, size: 18),
     );
@@ -716,10 +714,13 @@ class _MatchDaysPager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -754,10 +755,10 @@ class _SurfaceMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );

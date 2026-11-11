@@ -25,7 +25,7 @@ class AvatarBadge extends StatelessWidget {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return CircleAvatar(
         radius: radius,
-        backgroundColor: AppColors.surfaceElevated,
+        backgroundColor: context.tokens.surfaceElevated,
         foregroundImage: NetworkImage(imageUrl),
         child: PhosphorIcon(avatar.icon, color: avatar.color, size: radius),
       );
@@ -33,7 +33,7 @@ class AvatarBadge extends StatelessWidget {
 
     return CircleAvatar(
       radius: radius,
-      backgroundColor: AppColors.surfaceElevated,
+      backgroundColor: context.tokens.surfaceElevated,
       child: PhosphorIcon(avatar.icon, color: avatar.color, size: radius),
     );
   }

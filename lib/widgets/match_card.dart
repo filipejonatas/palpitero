@@ -26,24 +26,27 @@ class MatchCard extends StatelessWidget {
     final scoreText = _scoreText;
 
     final card = Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: Colors.white.withValues(alpha: .06)),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Expanded(child: _TeamSide(name: match.homeTeam)),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               _ScoreColumn(scoreText: scoreText, status: match.status),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(child: _TeamSide(name: match.awayTeam)),
             ],
           ),
-          if (footer != null) ...[const SizedBox(height: 16), footer!],
+          if (footer != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            footer!,
+          ],
         ],
       ),
     );
@@ -53,7 +56,7 @@ class MatchCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         onTap: onTap,
         child: card,
       ),
@@ -81,7 +84,7 @@ class _TeamSide extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         TeamFlag(teamName: name),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           name,
           maxLines: 2,
@@ -109,13 +112,9 @@ class _ScoreColumn extends StatelessWidget {
           Text(
             scoreText,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           MatchStatusChip(status: status),
         ],
       ),
@@ -171,15 +170,21 @@ class _FlagFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
+
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: AppColors.surfaceElevated,
-      child: Text(
-        _fallbackFlagLabel(teamName),
-        style: TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: size * .28,
-          fontWeight: FontWeight.w900,
+      backgroundColor: t.surfaceElevated,
+      child: Padding(
+        // The label scales with the flag: it fills the inner ~56% of it.
+        padding: EdgeInsets.all(size * .22),
+        child: FittedBox(
+          child: Text(
+            _fallbackFlagLabel(teamName),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.strong.copyWith(color: t.textSecondary),
+          ),
         ),
       ),
     );
@@ -198,11 +203,14 @@ class MatchStatusChip extends StatelessWidget {
     final isLive =
         normalized == 'LIVE' || normalized == '1H' || normalized == '2H';
     final isFinished = normalized == 'FT';
+    final t = context.tokens;
+    // Finished matches are neutral; anything not live or finished is
+    // scheduled, which is `pending` (docs/DESIGN.md).
     final color = isLive
-        ? AppColors.liveBadge
+        ? t.live
         : isFinished
-        ? AppColors.textSecondary
-        : AppColors.secondaryAccent;
+        ? t.textSecondary
+        : t.pending;
     final label = isLive
         ? 'Live'
         : isFinished
@@ -212,20 +220,19 @@ class MatchStatusChip extends StatelessWidget {
         : status;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .16),
+        color: t.stateFill(color),
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: color.withValues(alpha: .38)),
+        border: Border.all(color: t.stateBorder(color)),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: color == AppColors.textSecondary
-              ? AppColors.textPrimary
-              : color,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
+        style: Theme.of(context).textTheme.labelMedium?.strong.copyWith(
+          color: isFinished ? t.textPrimary : color,
         ),
       ),
     );

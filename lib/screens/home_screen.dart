@@ -50,11 +50,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          color: AppColors.primaryAccent,
-          backgroundColor: AppColors.surface,
+          color: context.tokens.brandOnSurface,
+          backgroundColor: context.tokens.surface,
           onRefresh: _loadMatches,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.xl,
+              AppSpacing.screen,
+              AppSpacing.bottomNavClearance,
+            ),
             children: [
               Row(
                 children: [
@@ -63,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Bolao 2026', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'Fase de grupos',
                           style: theme.textTheme.headlineMedium,
@@ -74,25 +79,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   LogoutCircleButton(
                     sessionController: widget.sessionController,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   IconButton(
                     tooltip: 'Perfil',
                     onPressed: () => context.push('/profile'),
                     style: IconButton.styleFrom(
-                      backgroundColor: AppColors.surface,
-                      foregroundColor: AppColors.primaryAccent,
+                      backgroundColor: context.tokens.surface,
+                      foregroundColor: context.tokens.brandOnSurface,
                     ),
                     icon: PhosphorIcon(PhosphorIcons.user()),
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: AppSpacing.xxl),
               _CompetitionStrip(matchCount: _matches.length),
-              const SizedBox(height: 22),
+              const SizedBox(height: AppSpacing.xxl),
               if (_isLoading)
                 const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32),
+                    padding: EdgeInsets.all(AppSpacing.xxxl),
                     child: CircularProgressIndicator(),
                   ),
                 )
@@ -100,10 +105,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const _EmptyState(message: 'Nenhum jogo encontrado.')
               else ...[
                 _GroupHeader(label: visibleGroup!.label),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 for (final match in visibleGroup.matches)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child:
                         MatchCard(
                               match: match,
@@ -124,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? null
                         : () => setState(() => _dayIndex++),
                   ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
               ],
             ],
           ),
@@ -204,21 +209,19 @@ class _CompetitionStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(
-          color: AppColors.primaryAccent.withValues(alpha: .2),
-        ),
+        color: context.tokens.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: context.tokens.border),
       ),
       child: Row(
         children: [
           PhosphorIcon(
             PhosphorIcons.trophy(PhosphorIconsStyle.fill),
-            color: AppColors.primaryAccent,
+            color: context.tokens.brandOnSurface,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               'FIFA World Cup 2026 - Group Stage',
@@ -244,12 +247,12 @@ class _GroupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Divider(color: Colors.white.withValues(alpha: .08))),
+        Expanded(child: Divider(color: context.tokens.border)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(label, style: Theme.of(context).textTheme.titleMedium),
         ),
-        Expanded(child: Divider(color: Colors.white.withValues(alpha: .08))),
+        Expanded(child: Divider(color: context.tokens.border)),
       ],
     );
   }
@@ -267,9 +270,9 @@ class _MatchMeta extends StatelessWidget {
         PhosphorIcon(
           PhosphorIcons.clock(),
           size: 16,
-          color: AppColors.textSecondary,
+          color: context.tokens.textSecondary,
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             match.kickoffLabel,
@@ -298,10 +301,13 @@ class _MatchDaysPager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -336,10 +342,10 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );

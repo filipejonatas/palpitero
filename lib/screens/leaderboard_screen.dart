@@ -61,7 +61,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         title: const Text('Ranking'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: LogoutCircleButton(
               sessionController: widget.sessionController,
             ),
@@ -71,31 +71,36 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.bottomNavClearance,
+          ),
           children: [
             Text('Leaderboard', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               '5 pts por placar exato. 3 pts por vencedor ou empate.',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: EdgeInsets.all(AppSpacing.xxxl),
                   child: CircularProgressIndicator(),
                 ),
               )
             else ...[
               if (userEntry != null) ...[
                 Text('Sua posicao', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.md),
                 LeaderboardTile(entry: userEntry),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.xl),
               ],
               Text('Top palpites', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.md),
               if (topEntries.isEmpty)
                 const _SurfaceMessage(
                   message: 'Nenhum palpite registrado ainda.',
@@ -103,13 +108,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               else
                 for (final entry in pagedEntries)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: LeaderboardTile(
                       entry: entry,
                     ).animate().fadeIn(duration: 220.ms).slideY(begin: .04),
                   ),
               if (topEntries.length > _entriesPerPage) ...[
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 _LeaderboardPager(
                   currentPage: safePageIndex + 1,
                   totalPages: totalPages,
@@ -200,10 +205,13 @@ class _LeaderboardPager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -239,19 +247,17 @@ class LeaderboardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final highlight = entry.isCurrentUser
-        ? AppColors.primaryAccent.withValues(alpha: .1)
-        : AppColors.surface;
+    final t = context.tokens;
+    final isPodium = entry.position <= 3;
+    final highlight = entry.isCurrentUser ? t.stateFill(t.brand) : t.surface;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: highlight,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(
-          color: entry.isCurrentUser
-              ? AppColors.primaryAccent.withValues(alpha: .3)
-              : Colors.white.withValues(alpha: .06),
+          color: entry.isCurrentUser ? t.stateBorder(t.brand) : t.borderSubtle,
         ),
       ),
       child: Row(
@@ -260,44 +266,42 @@ class LeaderboardTile extends StatelessWidget {
             width: 52,
             child: Row(
               children: [
-                if (entry.position <= 3) ...[
+                if (isPodium) ...[
                   Tooltip(
                     message: 'Top 3',
                     child: PhosphorIcon(
                       PhosphorIcons.trophy(PhosphorIconsStyle.fill),
                       size: 14,
-                      color: AppColors.primaryAccent,
+                      color: t.gold,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                 ],
                 Text(
                   '#${entry.position}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: entry.position <= 3
-                        ? AppColors.primaryAccent
-                        : AppColors.textPrimary,
+                  style: theme.textTheme.titleMedium?.numeric.copyWith(
+                    color: isPodium ? t.gold : t.textPrimary,
                   ),
                 ),
               ],
             ),
           ),
           AvatarBadge(avatarId: entry.avatarId, photoUrl: entry.photoUrl),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(entry.nick, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
                     PhosphorIcon(
                       PhosphorIcons.target(),
                       size: 14,
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         '${entry.predictionsCount} palpites - ${entry.exactScores} exatos',
@@ -312,17 +316,18 @@ class LeaderboardTile extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
-              color: AppColors.primaryAccent,
+              color: t.brand,
               borderRadius: BorderRadius.circular(AppRadii.pill),
             ),
             child: Text(
               '${entry.points} pts',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
+              style: theme.textTheme.labelLarge?.numeric.copyWith(
+                color: t.onBrand,
               ),
             ),
           ),
@@ -340,10 +345,10 @@ class _SurfaceMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.card),
+        color: context.tokens.surface,
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
