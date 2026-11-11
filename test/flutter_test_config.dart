@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:golden_toolkit/golden_toolkit.dart';
+import 'helpers/goldens.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   await loadAppFonts();

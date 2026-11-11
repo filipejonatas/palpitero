@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'catalog/design_system_catalog_screen.dart';
 import 'firebase_options.dart';
 import 'models/app_user.dart';
 import 'models/leaderboard_entry.dart';
@@ -87,21 +89,35 @@ class PalpiteroApp extends StatelessWidget {
 
   final SessionController sessionController;
 
+  /// Design system catalog: debug builds only, no sign-in needed.
+  static const catalogLocation = '/design-system';
+
+  /// `--dart-define=DESIGN_SYSTEM=true` opens the catalog on start (on
+  /// mobile there is no URL bar to type the route).
+  static const _startAtCatalog =
+      kDebugMode && bool.fromEnvironment('DESIGN_SYSTEM');
+
   @override
   Widget build(BuildContext context) {
     final router = GoRouter(
-      initialLocation: '/splash',
+      initialLocation: _startAtCatalog ? catalogLocation : '/splash',
       refreshListenable: sessionController,
       redirect: (context, state) {
         final signedIn = sessionController.currentUser != null;
         final atSplash = state.matchedLocation == '/splash';
         final atLogin = state.matchedLocation == '/login';
-        if (atSplash) return null;
+        final atCatalog = state.matchedLocation == catalogLocation;
+        if (atSplash || atCatalog) return null;
         if (!signedIn) return atLogin ? null : '/login';
         if (atLogin) return '/home';
         return null;
       },
       routes: [
+        if (kDebugMode)
+          GoRoute(
+            path: catalogLocation,
+            builder: (context, state) => const DesignSystemCatalogScreen(),
+          ),
         GoRoute(
           path: '/splash',
           builder: (context, state) => const SplashPage(),

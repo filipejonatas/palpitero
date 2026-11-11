@@ -239,6 +239,34 @@ Regras:
 - Lógica sem visual que as telas repetiam também saiu delas: agrupamento por dia em
   `utils/match_day_selector.dart`, rodadas e seeds do mata-mata em `utils/playoff_rounds.dart`.
 
+### Catálogo e goldens
+Desde o Checkpoint 7, todo token e todo componente aparece, em todos os estados, na tela
+`/design-system` (só em debug, sem login). Ela tem filtro por grupo (Tokens, Base, Domínio)
+e alterna o tema (sistema, claro, escuro).
+
+- **Abrir:** no web, `http://127.0.0.1:4200/#/design-system`; em qualquer plataforma,
+  `flutter run --dart-define=DESIGN_SYSTEM=true` já abre nele. Em release a rota não existe.
+- **Código:** `lib/catalog/`. Cada `CatalogSection` lista os `CatalogSpecimen` (um por
+  estado: normal, desabilitado, carregando, erro...) com dados fixos de `CatalogSamples`.
+- **Goldens:** `test/goldens/components_golden_test.dart` renderiza **as mesmas seções**,
+  uma imagem por seção e tema em `test/goldens/goldens/components/` (`<id>.png` e
+  `<id>_light.png`), mais snackbars e bottom sheet. O que o catálogo mostra é o que o golden
+  protege. As telas inteiras seguem em `app_golden_test.dart`.
+- **CI:** goldens não rodam no CI (pixels mudam entre sistemas). O
+  `test/catalog/design_system_catalog_test.dart` roda sempre e garante que toda seção monta
+  sem erro de layout nos dois temas, na largura de celular.
+
+```sh
+flutter test test/goldens --dart-define=RUN_GOLDENS=true                   # comparar
+flutter test test/goldens --dart-define=RUN_GOLDENS=true --update-goldens  # regenerar
+```
+
+Regras:
+- Componente novo (ou estado novo) entra no catálogo no mesmo commit, e o golden é gerado.
+- Golden que mudou: abra a imagem e confira se a diferença é intencional antes de regenerar.
+- Dados de exemplo não dependem do relógio. Jogo de grupo com data antes de 28/06/2026,
+  porque daí em diante o `isPlayoffMatch` considera mata-mata.
+
 ### Como escolher a cor certa (decisões do Checkpoint 4)
 - **Lima como preenchimento** (botão, chip ativo, aba ativa, pílula de pontos): `brand` com
   texto `onBrand`. **Lima como texto ou ícone**: `brandOnSurface`.

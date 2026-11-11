@@ -7,65 +7,61 @@ import 'package:palpitero/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../helpers/goldens.dart';
 import '../helpers/test_helpers.dart';
 
-const _runGoldens = bool.fromEnvironment('RUN_GOLDENS');
-
-/// Each golden runs in both themes (docs/DESIGN.md, "Modo de tema").
-/// Dark keeps the original file names; light adds the `_light` suffix.
-final _themes = <String, ThemeData Function()>{
-  '': AppTheme.dark,
-  '_light': AppTheme.light,
-};
-
+/// Whole screens. Each component in every state is in
+/// `components_golden_test.dart`.
 void main() {
-  for (final MapEntry(key: suffix, value: theme) in _themes.entries) {
+  for (final MapEntry(key: suffix, value: theme) in goldenThemes.entries) {
     _goldens(suffix, theme);
   }
 }
 
 void _goldens(String suffix, ThemeData Function() theme) {
   group('Golden tests${suffix.isEmpty ? '' : ' ($suffix)'}', () {
-    testGoldens('SplashPage matches iPhone 14 screenshot', (tester) async {
+    testGolden('SplashPage matches iPhone 14 screenshot', (tester) async {
       // Arrange
-      await tester.pumpWidgetBuilder(
+      await pumpGolden(
+        tester,
         const SplashPage(),
-        wrapper: materialAppWrapper(theme: theme()),
-        surfaceSize: const Size(390, 844),
+        theme: theme(),
+        size: const Size(390, 844),
       );
 
       // Act
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'splash_page_iphone_14$suffix');
-    }, skip: !_runGoldens);
+      await expectGolden(tester, 'splash_page_iphone_14$suffix');
+    });
 
-    testGoldens('LoginPage matches screenshot', (tester) async {
+    testGolden('LoginPage matches screenshot', (tester) async {
       // Arrange
-      await tester.pumpWidgetBuilder(
+      await pumpGolden(
+        tester,
         ProviderScope(
           child: LoginPage(
             sessionController: TestSessionController(currentUser: null),
           ),
         ),
-        wrapper: materialAppWrapper(theme: theme()),
-        surfaceSize: const Size(390, 844),
+        theme: theme(),
+        size: const Size(390, 844),
       );
 
       // Act
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'login_page$suffix');
-    }, skip: !_runGoldens);
+      await expectGolden(tester, 'login_page$suffix');
+    });
 
-    testGoldens('MatchCard states match screenshots', (tester) async {
+    testGolden('MatchCard states match screenshots', (tester) async {
       // Arrange
-      await tester.pumpWidgetBuilder(
+      await pumpGolden(
+        tester,
         const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -88,37 +84,38 @@ void _goldens(String suffix, ThemeData Function() theme) {
             ),
           ],
         ),
-        wrapper: materialAppWrapper(theme: theme()),
-        surfaceSize: const Size(390, 520),
+        theme: theme(),
+        size: const Size(390, 520),
       );
 
       // Act
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'match_card_states$suffix');
-    }, skip: !_runGoldens);
+      await expectGolden(tester, 'match_card_states$suffix');
+    });
 
-    testGoldens('RankingPage top 3 matches screenshot', (tester) async {
+    testGolden('RankingPage top 3 matches screenshot', (tester) async {
       // Arrange
       final service = MockLeaderboardService();
       when(
         () => service.loadLeaderboard(testUser),
       ).thenAnswer((_) async => leaderboardEntries());
-      await tester.pumpWidgetBuilder(
+      await pumpGolden(
+        tester,
         LeaderboardScreen(
           sessionController: TestSessionController(),
           leaderboardService: service,
         ),
-        wrapper: materialAppWrapper(theme: theme()),
-        surfaceSize: const Size(390, 844),
+        theme: theme(),
+        size: const Size(390, 844),
       );
 
       // Act
       await tester.pumpAndSettle();
 
       // Assert
-      await screenMatchesGolden(tester, 'ranking_page_top_3$suffix');
-    }, skip: !_runGoldens);
+      await expectGolden(tester, 'ranking_page_top_3$suffix');
+    });
   });
 }

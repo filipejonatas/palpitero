@@ -40,8 +40,8 @@ dart format --output=none --set-exit-if-changed .   # mesmo passo do CI
 - `analyze`: 1 aviso (`info`), aceito por enquanto: `DropdownButtonFormField.value` está
   depreciado em `playoff_matchups_screen.dart:438` (resolvido no Checkpoint 6).
 - `format`: 6 arquivos fora do padrão faziam o CI falhar. Corrigido com `dart format lib test`.
-- `pub get`: 1 pacote descontinuado (`golden_toolkit`). Decidir no Checkpoint 7 se migra
-  para `alchemist` ou para os `matchesGoldenFile` nativos.
+- `pub get`: 1 pacote descontinuado (`golden_toolkit`). Resolvido no Checkpoint 7: trocado
+  pelos `matchesGoldenFile` nativos (`test/helpers/goldens.dart`).
 
 **0.2 Testes unitários e de widget** ✅
 ```sh
@@ -368,9 +368,40 @@ não tem duplicação e não fazia parte do escopo.
 
 ## Checkpoint 7: Catálogo e testes visuais
 **Objetivo:** ver e proteger cada componente em todos os estados.
-- [ ] Widgetbook (ou tela `/design-system` só em debug) com todos os componentes.
-- [ ] Goldens por componente (normal, desabilitado, carregando, erro).
+- [x] Widgetbook (ou tela `/design-system` só em debug) com todos os componentes.
+- [x] Goldens por componente (normal, desabilitado, carregando, erro).
 - [x] Teste de contraste das cores de texto sobre as superfícies (acessibilidade). Feito no CP3.
+
+**Pasta:** `lib/catalog/`. Guia: seção "Catálogo e goldens" do [`DESIGN.md`](DESIGN.md).
+
+**Decisões e achados**
+- **Tela `/design-system` em vez de Widgetbook:** sem dependência nem app separado, usa o
+  tema e as fontes do próprio app, e as seções são widgets públicos que os goldens reaproveitam
+  (catálogo e golden não divergem). Só existe em debug (`kDebugMode`), não pede login
+  (`redirect` libera a rota) e abre direto com `--dart-define=DESIGN_SYSTEM=true`.
+- **Conteúdo:** 3 seções de tokens (cores, tipografia, espaçamento/raios), 9 de base e 10 de
+  domínio. Os rótulos da tipografia são lidos do próprio `TextStyle`, então não ficam
+  desatualizados. Só o `LogoutCircleButton` ficou de fora (precisa de `SessionController`;
+  o visual é o do `HeaderActionButton`, que está no catálogo).
+- **`golden_toolkit` removido** (pendência do CP0, pacote descontinuado): virou
+  `test/helpers/goldens.dart` (~130 linhas, `matchesGoldenFile` nativo) com o mesmo
+  comportamento (fontes do `FontManifest`, DPR 1, `MaterialApp` + `Material`, imagens
+  pré-carregadas). Os 8 goldens de tela passaram **idênticos pixel a pixel** sem regenerar.
+- **Spinners não assentam:** `pumpGolden(settleFor:)` avança um tempo fixo (1 s) em vez de
+  `pumpAndSettle`, então o quadro do spinner é determinístico.
+- **Achado:** `MatchPrediction.isPlayoffMatch` trata qualquer jogo a partir de 28/06/2026
+  como mata-mata, mesmo com `round: 'Group Stage'`. O `futureMatch` dos testes (2099) cai
+  nesse caso. Não mudei (é comportamento); as amostras do catálogo usam datas anteriores.
+- O chaveamento abre centralizado e, na largura de celular, mostra só as linhas; por isso o
+  `BracketSlot` (normal, avançou, bye, lado direito) tem exemplar próprio.
+
+**Testes**
+- `test/goldens/components_golden_test.dart`: 22 seções + snackbar info/erro + bottom sheet,
+  × 2 temas = 48 imagens novas em `test/goldens/goldens/components/`. Revisadas uma a uma.
+- `test/catalog/design_system_catalog_test.dart` (roda no CI): ids únicos, cada seção monta
+  sem exceção nos dois temas a 390 px, filtro por grupo e alternância de tema.
+- Resultado: `analyze` limpo; **215 passando, 56 pulados** (goldens fora do `RUN_GOLDENS`);
+  56/56 goldens ok.
 
 ## Checkpoint 8: Guardrails e documentação
 **Objetivo:** impedir regressão e orientar quem (ou qual IA) criar telas novas.
