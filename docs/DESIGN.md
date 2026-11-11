@@ -5,6 +5,10 @@ documento; se os dois divergirem, este arquivo vence e o código é corrigido.
 
 Plano de implementação: [DESIGN_SYSTEM_PLAN.md](DESIGN_SYSTEM_PLAN.md).
 
+**Vai criar ou mudar uma tela?** Leia [Tela nova, passo a passo](#tela-nova-passo-a-passo),
+[O que nunca fazer](#o-que-nunca-fazer) e rode `dart run tool/design_lint.dart`. Vale para
+pessoas e para assistentes de IA.
+
 ---
 
 ## Identidade
@@ -110,7 +114,8 @@ próprio `avatarPalette` e não podem ser usadas fora do avatar.
 | `w500` | Rótulos, chips, abas, legendas com ênfase |
 | `w400` | Texto corrido e descrições |
 
-Hoje são 22 usos de `w900`; a meta é que sobrem apenas os casos da primeira linha.
+Desde o Checkpoint 4, o `w900` só aparece pelo `.numeric` (placar, posição, pontos) e
+pelo estilo `display`. O lint (veja "Guardrails") barra `FontWeight` fora do tema.
 
 - **Escala fechada de tamanhos** (12 tamanhos atuais viram 6):
 
@@ -282,9 +287,81 @@ Regras:
 - Borda de lima "decorativa" (faixa da competição, slots comuns do chaveamento) virou borda
   neutra (`border`/`borderStrong`): lima não decora.
 
+### Tela nova, passo a passo
+1. **Imports:** `package:palpitero/design_system/design_system.dart` (tokens + base) e
+   `package:palpitero/widgets/widgets.dart` (domínio). O primeiro já reexporta os tokens.
+2. **Esqueleto:** `Scaffold` com `ListView`/`Column` e padding
+   `EdgeInsets.fromLTRB(AppSpacing.screen, …, AppSpacing.screen, AppSpacing.bottomNavClearance)`
+   em telas com a barra de navegação (`screenAuth` em Splash/Login). Topo com `AppPageHeader`.
+3. **Blocos:** procure primeiro nas tabelas de [Componentes](#componentes) e
+   [Componentes de domínio](#componentes-de-domínio). Se nada servir, amplie um componente
+   existente; só então crie um novo em `lib/widgets/` ou `lib/design_system/`.
+4. **Estados da tela:** carregando = `AppLoading`, vazio = `AppEmptyState`, falha =
+   `AppErrorState(onRetry:)`, feedback = `AppSnackBar.info/.error`. Toda tela tem os três.
+5. **Cor e texto:** `context.tokens.*` e `Theme.of(context).textTheme.*` (+ `.numeric`/`.strong`).
+   Escolha a cor pelas regras de [Como escolher a cor certa](#como-escolher-a-cor-certa-decisões-do-checkpoint-4).
+6. **Componente novo:** entra na tabela deste arquivo, no catálogo (`lib/catalog/`) e ganha
+   golden nos dois temas, no mesmo commit.
+7. **Antes do commit:** `dart format .`, `flutter analyze`, `dart run tool/design_lint.dart`,
+   `flutter test` e, se mudou visual, os goldens. Confira o tema claro e o escuro.
+8. **No PR:** o template (`.github/pull_request_template.md`) traz o checklist de design.
+
+### Guardrails
+Desde o Checkpoint 8, `tool/design_lint.dart` procura valores visuais avulsos em `lib/`. Roda no
+CI (passo "Design system lint", logo após o `analyze`) e também dentro do `flutter test`
+(`test/tool/design_lint_test.dart`), então quebra localmente antes do push.
+
+```sh
+dart run tool/design_lint.dart            # todo o lib/
+dart run tool/design_lint.dart lib/screens/nova_tela.dart
+```
+
+| Regra | Acusa | Use no lugar |
+|---|---|---|
+| `hex-color` | `Color(0x…)`, `Color.fromARGB/fromRGBO` | `context.tokens.*` |
+| `material-colors` | `Colors.*` (menos `transparent`) | `context.tokens.*` |
+| `font-size` | `fontSize:` | estilo do `TextTheme` |
+| `font-weight` | `FontWeight.*` | estilo do `TextTheme`, `.numeric`, `.strong` |
+| `font-family` | `fontFamily:`, `GoogleFonts.*` | nada (a Inter vem do tema) |
+| `numeric-spacing` | `EdgeInsets.*(…)` com número ≠ 0 | `AppSpacing.*` |
+| `numeric-gap` | `SizedBox(height: N)` / `(width: N)` sem `child` | `SizedBox(height: AppSpacing.*)` |
+| `numeric-radius` | `BorderRadius/Radius.circular(N)` | `AppRadii.*` |
+| `numeric-opacity` | `withValues(alpha: N)`, `withOpacity` | `AppOpacity.*`, `stateFill`/`stateBorder` |
+| `raw-shadow` | `BoxShadow(` | `floatingShadow`, `glowShadow` |
+| `raw-material-widget` | `FilledButton`, `ElevatedButton`, `OutlinedButton`, `TextButton`, `TextField`, `TextFormField`, `SnackBar`, `showModalBottomSheet`, `Circular/LinearProgressIndicator` | `AppButton*`, `AppTextField`, `AppSnackBar`, `showAppBottomSheet`, `AppLoading` |
+
+Onde vale:
+- `lib/theme/` fica de fora: é onde os tokens são definidos.
+- `lib/design_system/` pode usar os widgets do Material (os componentes os embrulham), mas
+  segue todas as outras regras.
+- Comentários e strings não contam.
+
+**Exceção:** quando o número é uma medida de componente, e não espaçamento (proporção da
+bandeira, altura fixa de um gráfico), marque a linha e diga o porquê:
+
+```dart
+// design-lint: ignore numeric-spacing (proporção da bandeira)
+padding: EdgeInsets.all(size * .22),
+```
+
+`// design-lint: ignore-file <regra>` vale para o arquivo inteiro. Use pouco: toda exceção
+aparece no review. Hoje existe uma só (`lib/widgets/team_flag.dart`).
+
+O que o lint **não** pega (fica no review e no checklist do PR): cor semântica fora do
+significado, lima como texto no claro, widget visual privado na tela, componente sem catálogo.
+
 ### O que nunca fazer
-- Usar lima como texto no tema claro.
+- Usar lima como texto no tema claro (use `brandOnSurface`).
 - Introduzir uma cor nova numa tela sem antes criar o token aqui.
 - Usar cor semântica fora do seu significado (ex.: verde para um botão comum).
-- Texto branco sobre `live`.
+- Texto branco sobre `live`; erro em `live` (erro é `error`/`onLoss`).
 - Peso `w900` em texto corrido ou rótulo.
+- Número solto de cor, fonte, espaçamento, raio, opacidade ou sombra fora de `lib/theme/`
+  (o lint barra).
+- `FilledButton`, `TextField`, `SnackBar`, `showModalBottomSheet` ou spinner do Material direto
+  numa tela (o lint barra).
+- `Container` com `BoxDecoration` desenhando um card à mão: é um `AppCard`.
+- Declarar na tela um widget visual que outra tela também usaria.
+- Mudar layout, raio, espaçamento ou tipografia entre os temas claro e escuro.
+- Regenerar golden sem abrir a imagem e confirmar que a diferença é intencional.
+- `// design-lint: ignore` sem motivo, ou para fugir de um token que existe.

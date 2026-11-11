@@ -405,11 +405,35 @@ não tem duplicação e não fazia parte do escopo.
 
 ## Checkpoint 8: Guardrails e documentação
 **Objetivo:** impedir regressão e orientar quem (ou qual IA) criar telas novas.
-- [ ] Regra de lint proibindo `Color(0x…)`, `fontSize:` e `EdgeInsets` numéricos fora do design system (`custom_lint` ou script de CI).
-- [ ] `DESIGN.md`: princípios, tokens, quando usar cada componente, o que nunca fazer.
-- [ ] Checklist de PR para telas novas.
-- [ ] Rodar o lint no CI (`.github/`).
+- [x] Regra de lint proibindo `Color(0x…)`, `fontSize:` e `EdgeInsets` numéricos fora do design system (`custom_lint` ou script de CI).
+- [x] `DESIGN.md`: princípios, tokens, quando usar cada componente, o que nunca fazer.
+- [x] Checklist de PR para telas novas.
+- [x] Rodar o lint no CI (`.github/`).
 - [x] Ligar `ThemeMode.system` (`AppTheme.mode`) e remover `Inter-ExtraBold.ttf` (feito no CP4).
+
+**Arquivos:** `tool/design_lint.dart`, `test/tool/design_lint_test.dart`,
+`.github/workflows/flutter-ci-cd.yml`, `.github/pull_request_template.md`. Guia: seções
+"Tela nova, passo a passo", "Guardrails" e "O que nunca fazer" do [`DESIGN.md`](DESIGN.md).
+
+**Decisões e achados**
+- **Script Dart em vez de `custom_lint`:** sem dependência nova (o `custom_lint` prende a versão
+  do `analyzer` e pesa no `pub get`), roda com `dart run` e cabe em ~300 linhas. O preço é não
+  sublinhar no editor; o teste `test/tool/design_lint_test.dart` cobre isso fazendo o
+  `flutter test` local falhar antes do push.
+- **11 regras**, além das 3 pedidas: `Colors.*`, `FontWeight`, `fontFamily`, `SizedBox` de
+  espaço, raio, opacidade, `BoxShadow` e widgets do Material crus fora de `lib/design_system/`
+  (a regra "tela não usa `FilledButton`…" do CP5, que até aqui só estava escrita).
+  `lib/theme/` fica de fora; comentários e strings são ignorados.
+- **Números só contam quando são literais ≠ 0** nos argumentos (inclusive em chamadas de várias
+  linhas): `EdgeInsets.only(top: 0)` e `AppSpacing.*` passam; `SizedBox(height: 220, child: …)`
+  é medida, não espaço, e também passa.
+- **Exceção explícita** com `// design-lint: ignore <regra> (motivo)`. Só uma no código: a
+  proporção `size * .22` do `TeamFlag`.
+- **O código já estava limpo:** a primeira rodada só achou o `TeamFlag`. O lint agora impede a
+  volta.
+- **Checklist de PR** em `.github/pull_request_template.md`: lint, tokens, tipografia, lima no
+  claro, componentes, catálogo/golden, dois temas, goldens locais.
+- Resultado: `analyze` limpo; lint limpo; **224 passando, 56 pulados**; 56/56 goldens ok.
 
 ## Checkpoint 9 (opcional): Performance ligada ao design
 **Objetivo:** ganhos de desempenho identificados na auditoria, depois do design estável.

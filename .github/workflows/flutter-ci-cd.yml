@@ -39,6 +39,9 @@ jobs:
       - name: Analyze project
         run: flutter analyze
 
+      - name: Design system lint
+        run: dart run tool/design_lint.dart
+
       - name: Run tests with coverage
         run: flutter test --coverage
 

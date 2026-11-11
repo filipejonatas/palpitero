@@ -58,6 +58,7 @@ class _FlagFallback extends StatelessWidget {
       backgroundColor: t.surfaceElevated,
       child: Padding(
         // The label scales with the flag: it fills the inner ~56% of it.
+        // design-lint: ignore numeric-spacing (proporção da bandeira)
         padding: EdgeInsets.all(size * .22),
         child: FittedBox(
           child: Text(
