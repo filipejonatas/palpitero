@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/match_prediction.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 
 /// Premium dark match card with team flags, score, and status chip.
 class MatchCard extends StatelessWidget {
@@ -25,13 +25,8 @@ class MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scoreText = _scoreText;
 
-    final card = Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
+    return AppCard(
+      onTap: onTap,
       child: Column(
         children: [
           Row(
@@ -48,17 +43,6 @@ class MatchCard extends StatelessWidget {
             footer!,
           ],
         ],
-      ),
-    );
-
-    if (onTap == null) return card;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        onTap: onTap,
-        child: card,
       ),
     );
   }
@@ -202,39 +186,15 @@ class MatchStatusChip extends StatelessWidget {
     final normalized = status.toUpperCase();
     final isLive =
         normalized == 'LIVE' || normalized == '1H' || normalized == '2H';
-    final isFinished = normalized == 'FT';
-    final t = context.tokens;
     // Finished matches are neutral; anything not live or finished is
     // scheduled, which is `pending` (docs/DESIGN.md).
-    final color = isLive
-        ? t.live
-        : isFinished
-        ? t.textSecondary
-        : t.pending;
-    final label = isLive
-        ? 'Live'
-        : isFinished
-        ? 'FT'
-        : status == 'NS'
-        ? 'Today'
-        : status;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: t.stateFill(color),
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: t.stateBorder(color)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.strong.copyWith(
-          color: isFinished ? t.textPrimary : color,
-        ),
-      ),
+    if (isLive) return const AppBadge(label: 'Live', tone: AppBadgeTone.live);
+    if (normalized == 'FT') {
+      return const AppBadge(label: 'FT', tone: AppBadgeTone.neutral);
+    }
+    return AppBadge(
+      label: status == 'NS' ? 'Today' : status,
+      tone: AppBadgeTone.pending,
     );
   }
 }

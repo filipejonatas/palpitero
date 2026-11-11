@@ -139,6 +139,45 @@ abstract final class AppTheme {
         errorBorder: _inputBorder(t.loss),
         focusedErrorBorder: _inputBorder(t.loss, width: 2),
       ),
+      // Text buttons are links: brand as text, so `brandOnSurface`
+      // (lima has 1.31:1 on white).
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: t.brandOnSurface,
+          textStyle: AppTypography.label.strong,
+        ),
+      ),
+      // Spinners sit on surfaces: brand as an indicator, not a fill.
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: t.brandOnSurface,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: t.surface,
+        modalBackgroundColor: t.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        modalElevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.lg),
+          ),
+        ),
+        showDragHandle: true,
+        dragHandleColor: t.borderStrong,
+        dragHandleSize: const Size(AppSizes.dragHandleWidth, AppSpacing.xs),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: t.surfaceElevated,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+        ),
+        titleTextStyle: AppTypography.title.copyWith(color: t.textPrimary),
+        contentTextStyle: AppTypography.bodySmall.copyWith(
+          color: t.textSecondary,
+        ),
+      ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: t.surfaceElevated,
         contentTextStyle: AppTypography.bodySmall.copyWith(

@@ -254,13 +254,54 @@ Basta `import 'package:palpitero/theme/app_theme.dart'`.
 
 ## Checkpoint 5: Componentes base
 **Objetivo:** blocos reutilizáveis que só leem tokens.
-- [ ] `AppButton` (primário, secundário, outline; estados loading/desabilitado).
-- [ ] `AppCard`, `AppChip`, `AppTextField`, `AppBadge` (ao vivo, status do palpite).
-- [ ] `AppSectionHeader`, `AppEmptyState` (`_SurfaceMessage`), `AppLoading`, `AppErrorState`.
-- [ ] `AppBottomSheet`/diálogos padronizados e `AppSnackBar`.
-- [ ] Substituir usos nas telas.
+- [x] `AppButton` (primário, secundário, outline, texto; estados loading/desabilitado).
+- [x] `AppCard`, `AppChip`, `AppTextField`, `AppBadge` (ao vivo, status do palpite, pontos).
+- [x] `AppSectionHeader` (+ `AppPageHeader`), `AppEmptyState` (`_SurfaceMessage`), `AppLoading`, `AppErrorState`.
+- [x] `showAppBottomSheet`/diálogos padronizados (via `dialogTheme`) e `AppSnackBar`.
+- [x] Substituir usos nas telas.
 
-**Pasta:** `lib/widgets/` (ou `lib/design_system/`).
+**Pasta:** `lib/design_system/` (componentes base) com o barrel `design_system.dart`, que também
+reexporta os tokens. `lib/widgets/` fica para os componentes de domínio do CP6.
+Guia de uso: seção "Componentes" do [`DESIGN.md`](DESIGN.md).
+
+**Decisões e achados**
+- **Os componentes embrulham os botões do Material** (`FilledButton`, `OutlinedButton`,
+  `TextButton`) em vez de redesenhar: semântica, foco e ripple continuam nativos, e os testes
+  que procuram `FilledButton` seguem valendo. O spinner de `isLoading` pega a cor do
+  `IconTheme` do botão, então lê bem em qualquer estado e tema.
+- **Diálogos sem componente:** não há nenhum no app; o `dialogTheme` deixa `AlertDialog` no padrão.
+  Criar um `showAppConfirmDialog` quando houver o primeiro uso.
+- **Removidos das telas:** 5 cópias de `_SurfaceMessage`, `_EmptyState`, `_AuthButton`/
+  `_GoogleSignInButton`/`_EmailSignInButton`, `_RoundChip`, `_StatusChip` e a lógica de
+  cor do `MatchStatusChip` (agora só mapeia status → `AppBadgeTone`). `lib/` fora de
+  `design_system/`: −848/+273 linhas.
+- **Ficaram para o CP6** (são de domínio): os 4 paginadores (`_MatchDaysPager` ×3,
+  `_LeaderboardPager`, `_RoundPager`, já sobre `AppCard`), `_CompetitionStrip`, `_PredictionPill`,
+  `_ScoreStepper`, `LogoutCircleButton`.
+- **Bug corrigido de passagem:** o `MatchCard` tocável tinha o ripple escondido atrás do
+  `Container` opaco; o `AppCard` usa `Ink`.
+- Novos tokens: `AppSizes.iconSm` (18), `spinnerStroke` (2), `dragHandleWidth` (40).
+
+**Mudanças visíveis (intencionais, seguem o `DESIGN.md`)**
+- Botões de Splash e Login: pílula → raio `md` 14, como todos os botões. Google em
+  `AppButton.secondary`; carregando, mostra spinner + rótulo (antes só o spinner).
+- `TextButton` ("Palpites" nos resultados): lima puro → `brandOnSurface` 13/w700. No claro, o
+  lima como texto tinha contraste 1,31:1.
+- Spinners de tela: lima → `brandOnSurface` (`progressIndicatorTheme`), pelo mesmo motivo.
+- Snackbars de falha (carregar/salvar palpite, ranking, perfil, foto, backend) passam a usar
+  `AppSnackBar.error`; confirmações seguem neutras.
+- Mensagens vazias ganham a borda `borderSubtle` dos cards (antes só o Perfil tinha); padding
+  da vazia da Home 20 → 16. Paginadores e o histórico do Perfil também ganham a borda.
+- Erro de estatísticas do Perfil e falha da sheet de palpites viram `AppErrorState` (ícone de erro).
+- Sheet de palpites: alça de arrasto (`showDragHandle`) e raio `lg` no topo.
+- Palpite público sem acerto exato: perde a borda (item dentro da sheet = `AppCard.elevated`).
+
+**Testes**
+- Novo `test/design_system/components_test.dart`: 19 casos × 2 temas (cores de cada variante,
+  loading/desabilitado, estados, snackbar, sheet, campo).
+- Goldens de Splash e Login regenerados (botões); `MatchCard` e Ranking ficaram idênticos
+  pixel a pixel, confirmando que `AppCard`/`AppBadge` reproduzem o visual anterior.
+- Resultado: `analyze` só com o aviso conhecido; **133 passando, 8 pulados**; 8/8 goldens ok.
 
 ## Checkpoint 6: Componentes de domínio
 **Objetivo:** extrair os widgets privados das telas gigantes.

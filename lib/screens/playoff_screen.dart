@@ -9,7 +9,7 @@ import '../models/playoff.dart';
 import '../services/leaderboard_service.dart';
 import '../services/playoff_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../widgets/logout_circle_button.dart';
 
 /// Playoff preview screen with a seeded 32-player bracket.
@@ -87,42 +87,25 @@ class _PlayoffScreenState extends State<PlayoffScreen> {
             const SizedBox(height: AppSpacing.md),
             const _RulesPanel(),
             const SizedBox(height: AppSpacing.xl),
-            FilledButton.icon(
+            AppButton(
+              label: 'Visualizar Confrontos',
+              icon: PhosphorIcon(PhosphorIcons.target()),
               onPressed: _isLoading
                   ? null
                   : () => context.push('/playoff/confrontos'),
-              icon: PhosphorIcon(PhosphorIcons.target()),
-              label: const Text('Visualizar Confrontos'),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Row(
-              children: [
-                PhosphorIcon(
-                  PhosphorIcons.target(),
-                  size: 18,
-                  color: context.tokens.brandOnSurface,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    _isLoading
-                        ? 'Montando preview...'
-                        : _bracket == null
-                        ? '${participants.length} players no chaveamento'
-                        : '${participants.length} players na chave oficial',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                ),
-              ],
+            AppSectionHeader(
+              icon: PhosphorIcons.target(),
+              title: _isLoading
+                  ? 'Montando preview...'
+                  : _bracket == null
+                  ? '${participants.length} players no chaveamento'
+                  : '${participants.length} players na chave oficial',
             ),
             const SizedBox(height: AppSpacing.md),
             if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading()
             else
               bracket.animate().fadeIn(duration: 260.ms).slideY(begin: .03),
           ],
@@ -231,13 +214,7 @@ class _RulesPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -168,6 +168,42 @@ Desde o Checkpoint 3, um único import: `package:palpitero/theme/app_theme.dart`
 Desde o Checkpoint 4 as telas leem cor só por `context.tokens` (o `AppColors` legado foi
 removido) e o app segue o tema do sistema.
 
+### Componentes
+Desde o Checkpoint 5, as telas importam um único arquivo,
+`package:palpitero/design_system/design_system.dart`, que reexporta os tokens e os
+componentes base de `lib/design_system/`. Componentes de domínio (`MatchCard`,
+`AvatarBadge`) ficam em `lib/widgets/` e são montados com estes.
+
+| Componente | Quando usar | Não usar para |
+|---|---|---|
+| `AppButton` | Ação principal da área (lima). `isLoading` troca o ícone por spinner e desabilita; `onPressed: null` desabilita. | Mais de um primário na mesma área. |
+| `AppButton.secondary` | Alternativa com o mesmo peso, sem marca (ex.: "Continuar com o Google"). | |
+| `AppButton.outline` | Ação de menor prioridade ao lado de um primário ("Sair", "Alterar foto"). | |
+| `AppButton.text` | Ação inline, tipo link ("Palpites"). Texto `brandOnSurface`. | Ação principal. |
+| `AppCard` | Qualquer bloco agrupado na tela: `surface` + `borderSubtle`. `highlight: t.brand/t.success` vira card de estado. `onTap` torna tocável. | |
+| `AppCard.elevated` | Item dentro de card, sheet ou painel: `surfaceElevated`, sem borda. | Card solto na tela. |
+| `AppChip` | Seleção em pílula (rodada, filtro). Selecionado = lima. | Status somente leitura (use `AppBadge`). |
+| `AppBadge(tone:)` | Status somente leitura: `live`, `pending`, `neutral` (encerrado), `success`, `loss`, `gold`. | Ação tocável. |
+| `AppBadge.points(n)` | Pílula de pontos; `highlighted: false` para quem não pontuou. | |
+| `AppTextField` | Campo de texto de uma linha (`maxLength` sem contador). | |
+| `AppPageHeader` | Topo do conteúdo da tela: `eyebrow` lima opcional, título `display`, subtítulo. | |
+| `AppSectionHeader` | Título de bloco ("Sua posição", rótulo do dia), com ícone/`trailing` opcionais. | |
+| `AppLoading` | Spinner centralizado de tela ou seção. | Dentro de botão (use `isLoading`). |
+| `AppEmptyState` | "Ainda não há nada aqui", num card. | Falha de carregamento. |
+| `AppErrorState` | Falha de carregamento: ícone `error` + mensagem; `onRetry` mostra "Tentar novamente". | |
+| `showAppBottomSheet` | Qualquer bottom sheet: `surface`, raio `lg` em cima, alça. | |
+| `AppSnackBar.info` / `.error` | Confirmação neutra / falha (`error` com `onLoss`). | Erro com `live`. |
+
+Diálogos não têm componente: `dialogTheme` já aplica `surfaceElevated`, raio `lg` e a
+tipografia, então `showDialog` com `AlertDialog` sai no padrão.
+
+Regras:
+- Tela nova não usa `FilledButton`, `OutlinedButton`, `TextButton`, `TextField`,
+  `SnackBar`, `showModalBottomSheet` nem `CircularProgressIndicator` diretamente.
+- Um `Container` com `BoxDecoration` de `surface`/`surfaceElevated` + raio `md` é um
+  `AppCard`. Se o caso não couber, amplie o componente antes de desenhar à mão.
+- Todo componente lê só tokens; está coberto em `test/design_system/` nos dois temas.
+
 ### Como escolher a cor certa (decisões do Checkpoint 4)
 - **Lima como preenchimento** (botão, chip ativo, aba ativa, pílula de pontos): `brand` com
   texto `onBrand`. **Lima como texto ou ícone**: `brandOnSurface`.

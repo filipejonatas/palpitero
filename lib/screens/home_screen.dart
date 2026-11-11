@@ -7,7 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../models/match_prediction.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../utils/match_day_selector.dart';
 import '../widgets/logout_circle_button.dart';
 import '../widgets/match_card.dart';
@@ -95,14 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
               _CompetitionStrip(matchCount: _matches.length),
               const SizedBox(height: AppSpacing.xxl),
               if (_isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxxl),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                const AppLoading()
               else if (groups.isEmpty)
-                const _EmptyState(message: 'Nenhum jogo encontrado.')
+                const AppEmptyState(message: 'Nenhum jogo encontrado.')
               else ...[
                 _GroupHeader(label: visibleGroup!.label),
                 const SizedBox(height: AppSpacing.md),
@@ -300,14 +295,10 @@ class _MatchDaysPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -330,24 +321,6 @@ class _MatchDaysPager extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }

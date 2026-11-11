@@ -9,7 +9,7 @@ import '../models/match_prediction.dart';
 import '../services/leaderboard_service.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../widgets/logout_circle_button.dart';
 
 /// Profile screen with avatar, editable identity, stats, and history.
@@ -54,7 +54,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = widget.sessionController.currentUser!;
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -80,74 +79,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             _UserSummary(user: user),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
-              onPressed: _isPhotoUploading || widget.sessionController.isLoading
+            AppButton.outline(
+              label: _isPhotoUploading ? 'Enviando foto...' : 'Alterar foto',
+              icon: PhosphorIcon(PhosphorIcons.camera()),
+              isLoading: _isPhotoUploading,
+              onPressed: widget.sessionController.isLoading
                   ? null
                   : _pickAndUploadPhoto,
-              icon: _isPhotoUploading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : PhosphorIcon(PhosphorIcons.camera()),
-              label: Text(
-                _isPhotoUploading ? 'Enviando foto...' : 'Alterar foto',
-              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             _StatsGrid(entry: _userStats, isLoading: _isStatsLoading),
             if (_statsError != null) ...[
               const SizedBox(height: AppSpacing.md),
-              _SurfaceMessage(message: _statsError!),
+              AppErrorState(message: _statsError!),
             ],
             const SizedBox(height: AppSpacing.xxl),
-            Text('Nick no ranking', style: theme.textTheme.titleMedium),
+            const AppSectionHeader(title: 'Nick no ranking'),
             const SizedBox(height: AppSpacing.sm),
-            TextField(
+            AppTextField(
               controller: _nickController,
               maxLength: 24,
-              decoration: const InputDecoration(
-                hintText: 'Como voce quer aparecer?',
-                counterText: '',
-              ),
+              hintText: 'Como voce quer aparecer?',
             ),
             const SizedBox(height: AppSpacing.xxl),
-            FilledButton.icon(
-              onPressed: widget.sessionController.isLoading ? null : _save,
-              icon: widget.sessionController.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : PhosphorIcon(PhosphorIcons.floppyDisk()),
-              label: Text(
-                widget.sessionController.isLoading
-                    ? 'Salvando...'
-                    : 'Salvar perfil',
-              ),
+            AppButton(
+              label: widget.sessionController.isLoading
+                  ? 'Salvando...'
+                  : 'Salvar perfil',
+              icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
+              isLoading: widget.sessionController.isLoading,
+              onPressed: _save,
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
+            AppButton.outline(
+              label: 'Sair',
+              icon: PhosphorIcon(PhosphorIcons.signOut()),
               onPressed: widget.sessionController.isLoading
                   ? null
                   : widget.sessionController.signOut,
-              icon: PhosphorIcon(PhosphorIcons.signOut()),
-              label: const Text('Sair'),
             ),
             const SizedBox(height: AppSpacing.xxl),
-            Text('Historico', style: theme.textTheme.titleMedium),
+            const AppSectionHeader(title: 'Historico'),
             const SizedBox(height: AppSpacing.md),
             if (_isStatsLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading(padding: EdgeInsets.all(AppSpacing.xxl))
             else if (_history.isEmpty)
-              const _SurfaceMessage(
+              const AppEmptyState(
                 message: 'Nenhum palpite registrado no backend ainda.',
               )
             else
@@ -164,9 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _save() async {
     final nick = _nickController.text.trim();
     if (nick.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Use um nick com pelo menos 3 letras.')),
-      );
+      AppSnackBar.error(context, 'Use um nick com pelo menos 3 letras.');
       return;
     }
 
@@ -177,15 +152,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (!mounted) return;
     if (widget.sessionController.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.sessionController.errorMessage!)),
-      );
+      AppSnackBar.error(context, widget.sessionController.errorMessage!);
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Perfil atualizado.')));
+    AppSnackBar.info(context, 'Perfil atualizado.');
     setState(() {});
     await _loadProfileStats(widget.sessionController.currentUser!);
   }
@@ -228,22 +199,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (!mounted) return;
       if (widget.sessionController.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(widget.sessionController.errorMessage!)),
-        );
+        AppSnackBar.error(context, widget.sessionController.errorMessage!);
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Foto atualizada.')));
+      AppSnackBar.info(context, 'Foto atualizada.');
       setState(() {});
     } catch (error) {
       debugPrint('Falha ao enviar foto de perfil: $error');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nao foi possivel enviar a foto.')),
-      );
+      AppSnackBar.error(context, 'Nao foi possivel enviar a foto.');
     } finally {
       if (mounted) setState(() => _isPhotoUploading = false);
     }
@@ -331,13 +296,8 @@ class _UserSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
       child: Row(
         children: [
           _ProfilePhoto(photoUrl: user.photoUrl, radius: 36),
@@ -433,12 +393,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard.elevated(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -464,12 +420,7 @@ class _HistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+    return AppCard(
       child: Row(
         children: [
           PhosphorIcon(
@@ -516,24 +467,5 @@ class _PredictionHistoryItem {
       MatchPick.draw => 'Empate',
       MatchPick.away => match.awayTeam,
     };
-  }
-}
-
-class _SurfaceMessage extends StatelessWidget {
-  const _SurfaceMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
-    );
   }
 }

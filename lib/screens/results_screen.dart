@@ -7,7 +7,7 @@ import '../models/app_user.dart';
 import '../models/match_prediction.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../utils/match_day_selector.dart';
 import '../widgets/match_card.dart';
 
@@ -41,7 +41,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final matchDays = _matchDays;
     final visibleDay = matchDays.isEmpty ? null : matchDays[_dayIndex];
 
@@ -57,24 +56,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
             AppSpacing.bottomNavClearance,
           ),
           children: [
-            Text('Calendario oficial', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Placares e status da fase de grupos em tempo real.',
-              style: theme.textTheme.bodyMedium,
+            const AppPageHeader(
+              title: 'Calendario oficial',
+              subtitle: 'Placares e status da fase de grupos em tempo real.',
             ),
             const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading()
             else if (_matches.isEmpty)
-              const _SurfaceMessage(message: 'Nenhum resultado encontrado.')
+              const AppEmptyState(message: 'Nenhum resultado encontrado.')
             else ...[
-              Text(visibleDay!.label, style: theme.textTheme.titleMedium),
+              AppSectionHeader(title: visibleDay!.label),
               const SizedBox(height: AppSpacing.md),
               for (final match in visibleDay.matches)
                 Padding(
@@ -149,7 +141,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           _dayIndex = 0;
           _isLoading = false;
         });
-        _showMessage('Nao foi possivel conectar ao backend.');
+        AppSnackBar.error(context, 'Nao foi possivel conectar ao backend.');
         return;
       }
       final matchDays = _buildMatchDays(mockMatches);
@@ -160,7 +152,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
         );
         _isLoading = false;
       });
-      _showMessage(
+      AppSnackBar.error(
+        context,
         'Nao foi possivel conectar ao backend. Usando resultados mockados.',
       );
     }
@@ -170,10 +163,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final AppUser? user = widget.sessionController?.currentUser;
     if (user == null) return;
 
-    showModalBottomSheet<void>(
+    showAppBottomSheet<void>(
       context: context,
-      backgroundColor: context.tokens.surface,
-      isScrollControlled: true,
       builder: (context) => _PredictionResultsSheet(
         predictionService: _predictionService,
         user: user,
@@ -186,12 +177,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final labelParts = match.kickoffLabel.split(',');
     if (labelParts.isEmpty) return 'Dia do jogo';
     return labelParts.first.trim();
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -224,10 +209,10 @@ class _ResultActions extends StatelessWidget {
           ),
         ),
         if (match.isFinished)
-          TextButton.icon(
-            onPressed: onOpenPredictions,
+          AppButton.text(
+            label: 'Palpites',
             icon: PhosphorIcon(PhosphorIcons.users(), size: 16),
-            label: const Text('Palpites'),
+            onPressed: onOpenPredictions,
           ),
       ],
     );
@@ -265,7 +250,7 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.screen,
-          AppSpacing.lg,
+          0,
           AppSpacing.screen,
           AppSpacing.xxl,
         ),
@@ -273,20 +258,11 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const SizedBox(
-                height: 220,
-                child: Center(child: CircularProgressIndicator()),
-              );
+              return const SizedBox(height: 220, child: AppLoading());
             }
             if (snapshot.hasError || !snapshot.hasData) {
-              return SizedBox(
-                height: 180,
-                child: Center(
-                  child: Text(
-                    'Nao foi possivel carregar os palpites.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
+              return const AppErrorState(
+                message: 'Nao foi possivel carregar os palpites.',
               );
             }
 
@@ -310,7 +286,7 @@ class _PredictionResultsSheetState extends State<_PredictionResultsSheet> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   if (result.predictions.isEmpty)
-                    const _SurfaceMessage(
+                    const AppEmptyState(
                       message: 'Nenhum palpite salvo para este jogo.',
                     )
                   else
@@ -337,65 +313,40 @@ class _PublicPredictionTile extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final scored = prediction.points > 0;
     // Exact score is a hit: success state (docs/DESIGN.md, "Semânticas").
-    final highlight = prediction.exactScore
-        ? t.stateFill(t.success)
-        : t.surfaceElevated;
-    final border = prediction.exactScore
-        ? t.stateBorder(t.success)
-        : t.borderSubtle;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: highlight,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: t.background,
-            foregroundColor: t.brandOnSurface,
-            child: Text(_initial, style: text.titleMedium),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  prediction.nick,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.titleMedium,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '${prediction.predictedHomeScore} x ${prediction.predictedAwayScore}',
-                  style: text.bodyMedium,
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: AppCard.elevated(
+        highlight: prediction.exactScore ? t.success : null,
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: t.background,
+              foregroundColor: t.brandOnSurface,
+              child: Text(_initial, style: text.titleMedium),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: scored ? t.brand : t.background,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-            ),
-            child: Text(
-              '${prediction.points} pts',
-              style: text.labelLarge?.numeric.copyWith(
-                color: scored ? t.onBrand : t.textSecondary,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prediction.nick,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${prediction.predictedHomeScore} x ${prediction.predictedAwayScore}',
+                    style: text.bodyMedium,
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            AppBadge.points(prediction.points, highlighted: scored),
+          ],
+        ),
       ),
     );
   }
@@ -429,14 +380,10 @@ class _MatchDaysPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -459,24 +406,6 @@ class _MatchDaysPager extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SurfaceMessage extends StatelessWidget {
-  const _SurfaceMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }

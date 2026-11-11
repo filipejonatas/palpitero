@@ -6,7 +6,7 @@ import '../models/app_user.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../widgets/avatar_badge.dart';
 import '../widgets/logout_circle_button.dart';
 
@@ -42,7 +42,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final userEntry = _currentUserEntry;
     final topEntries = userEntry == null
         ? _entries
@@ -78,33 +77,24 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             AppSpacing.bottomNavClearance,
           ),
           children: [
-            Text('Leaderboard', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '5 pts por placar exato. 3 pts por vencedor ou empate.',
-              style: theme.textTheme.bodyMedium,
+            const AppPageHeader(
+              title: 'Leaderboard',
+              subtitle: '5 pts por placar exato. 3 pts por vencedor ou empate.',
             ),
             const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading()
             else ...[
               if (userEntry != null) ...[
-                Text('Sua posicao', style: theme.textTheme.titleMedium),
+                const AppSectionHeader(title: 'Sua posicao'),
                 const SizedBox(height: AppSpacing.md),
                 LeaderboardTile(entry: userEntry),
                 const SizedBox(height: AppSpacing.xl),
               ],
-              Text('Top palpites', style: theme.textTheme.titleMedium),
+              const AppSectionHeader(title: 'Top palpites'),
               const SizedBox(height: AppSpacing.md),
               if (topEntries.isEmpty)
-                const _SurfaceMessage(
-                  message: 'Nenhum palpite registrado ainda.',
-                )
+                const AppEmptyState(message: 'Nenhum palpite registrado ainda.')
               else
                 for (final entry in pagedEntries)
                   Padding(
@@ -165,10 +155,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nao foi possivel carregar o ranking online.'),
-          ),
+        AppSnackBar.error(
+          context,
+          'Nao foi possivel carregar o ranking online.',
         );
       });
     }
@@ -204,14 +193,10 @@ class _LeaderboardPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -249,17 +234,9 @@ class LeaderboardTile extends StatelessWidget {
     final theme = Theme.of(context);
     final t = context.tokens;
     final isPodium = entry.position <= 3;
-    final highlight = entry.isCurrentUser ? t.stateFill(t.brand) : t.surface;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: highlight,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(
-          color: entry.isCurrentUser ? t.stateBorder(t.brand) : t.borderSubtle,
-        ),
-      ),
+    return AppCard(
+      highlight: entry.isCurrentUser ? t.brand : null,
       child: Row(
         children: [
           SizedBox(
@@ -315,42 +292,9 @@ class LeaderboardTile extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: t.brand,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-            ),
-            child: Text(
-              '${entry.points} pts',
-              style: theme.textTheme.labelLarge?.numeric.copyWith(
-                color: t.onBrand,
-              ),
-            ),
-          ),
+          AppBadge.points(entry.points),
         ],
       ),
-    );
-  }
-}
-
-class _SurfaceMessage extends StatelessWidget {
-  const _SurfaceMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }

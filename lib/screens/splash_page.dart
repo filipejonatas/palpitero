@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 
 /// Static trophy splash page shown before entering the app flow.
 class SplashPage extends StatelessWidget {
@@ -84,34 +84,12 @@ class SplashPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: isBusy ? null : () => context.go('/login'),
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.pill),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(isBusy ? 'Carregando...' : 'Começar'),
-                      const SizedBox(width: AppSpacing.sm),
-                      if (isBusy)
-                        SizedBox.square(
-                          dimension: AppSizes.spinner,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: t.onBrand,
-                          ),
-                        )
-                      else
-                        PhosphorIcon(PhosphorIcons.arrowRight()),
-                    ],
-                  ),
-                ),
+              AppButton(
+                label: isBusy ? 'Carregando...' : 'Começar',
+                icon: PhosphorIcon(PhosphorIcons.arrowRight()),
+                iconAlignment: IconAlignment.end,
+                isLoading: isBusy,
+                onPressed: () => context.go('/login'),
               ).animate().fadeIn(delay: 700.ms, duration: 420.ms),
             ],
           ),

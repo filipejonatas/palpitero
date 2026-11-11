@@ -11,7 +11,7 @@ import '../services/leaderboard_service.dart';
 import '../services/playoff_service.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../widgets/avatar_badge.dart';
 
 /// Matchup comparison screen for the knockout bracket.
@@ -51,7 +51,6 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final rounds = _rounds;
     final selectedRound = rounds.isEmpty ? null : rounds[_roundIndex];
     final safeMatchIndex =
@@ -89,22 +88,15 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
             AppSpacing.bottomNavClearance,
           ),
           children: [
-            Text('Mata-mata', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Compare os placares e pontos de cada duelo da rodada.',
-              style: theme.textTheme.bodyMedium,
+            const AppPageHeader(
+              title: 'Mata-mata',
+              subtitle: 'Compare os placares e pontos de cada duelo da rodada.',
             ),
             const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading()
             else if (rounds.isEmpty)
-              const _SurfaceMessage(
+              const AppEmptyState(
                 message: 'Nenhum confronto de mata-mata encontrado.',
               )
             else ...[
@@ -120,12 +112,7 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
               _RoundStatusBar(match: selectedMatch),
               const SizedBox(height: AppSpacing.lg),
               if (_isLoadingScores)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxl),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                const AppLoading(padding: EdgeInsets.all(AppSpacing.xxl))
               else
                 _MatchupComparison(
                   match: selectedMatch,
@@ -205,7 +192,7 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
         _roundPredictionResults = [];
         _isLoading = false;
       });
-      _showMessage('Nao foi possivel carregar os confrontos.');
+      _showError('Nao foi possivel carregar os confrontos.');
     }
   }
 
@@ -412,12 +399,10 @@ class _PlayoffMatchupsScreenState extends State<PlayoffMatchupsScreen> {
     };
   }
 
-  void _showMessage(String message) {
+  void _showError(String message) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      AppSnackBar.error(context, message);
     });
   }
 }
@@ -473,13 +458,8 @@ class _RoundStatusBar extends StatelessWidget {
         ? context.tokens.success
         : context.tokens.textSecondary;
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
       child: Row(
         children: [
           PhosphorIcon(
@@ -496,7 +476,7 @@ class _RoundStatusBar extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          _StatusChip(status: match.status),
+          _MatchupStatusBadge(status: match.status),
         ],
       ),
     );
@@ -564,32 +544,14 @@ class _PredictionBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return AppCard(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              PhosphorIcon(
-                PhosphorIcons.checkCircle(),
-                size: 18,
-                color: context.tokens.brandOnSurface,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Placares contabilizados',
-                  style: theme.textTheme.titleMedium,
-                ),
-              ),
-            ],
+          AppSectionHeader(
+            title: 'Placares contabilizados',
+            icon: PhosphorIcons.checkCircle(),
           ),
           const SizedBox(height: AppSpacing.md),
           if (results.isEmpty)
@@ -630,12 +592,7 @@ class _PredictionResultRow extends StatelessWidget {
     final predictionA = _predictionFor(participantA);
     final predictionB = _predictionFor(participantB);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: context.tokens.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+    return AppCard.elevated(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -747,16 +704,9 @@ class _CompetitorScoreCard extends StatelessWidget {
     final isEmpty = participant == null;
     final t = context.tokens;
     final hasPoints = isWinner || (score?.points ?? 0) > 0;
-    final borderColor = isWinner ? t.stateBorder(t.brand) : t.borderSubtle;
-    final background = isWinner ? t.stateFill(t.brand) : t.surface;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: borderColor),
-      ),
+    return AppCard(
+      highlight: isWinner ? t.brand : null,
       child: Row(
         children: [
           SizedBox(
@@ -824,22 +774,7 @@ class _CompetitorScoreCard extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: hasPoints ? t.brand : t.background,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-            ),
-            child: Text(
-              '${score?.points ?? 0} pts',
-              style: theme.textTheme.labelLarge?.numeric.copyWith(
-                color: hasPoints ? t.onBrand : t.textSecondary,
-              ),
-            ),
-          ),
+          AppBadge.points(score?.points ?? 0, highlighted: hasPoints),
         ],
       ),
     );
@@ -894,15 +829,10 @@ class _RoundPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: context.tokens.borderSubtle),
       ),
       child: Row(
         children: [
@@ -919,9 +849,9 @@ class _RoundPager extends StatelessWidget {
                 itemCount: rounds.length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.sm),
-                itemBuilder: (context, index) => _RoundChip(
+                itemBuilder: (context, index) => AppChip(
                   label: rounds[index].label,
-                  isActive: index == currentIndex,
+                  selected: index == currentIndex,
                 ),
               ),
             ),
@@ -933,96 +863,6 @@ class _RoundPager extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _RoundChip extends StatelessWidget {
-  const _RoundChip({required this.label, required this.isActive});
-
-  final String label;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-
-    return AnimatedContainer(
-      duration: AppDurations.fast,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: isActive ? t.brand : t.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: isActive ? t.onBrand : t.textPrimary,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final normalized = status.trim().toLowerCase();
-    final isFinished = normalized == 'finished' || normalized == 'done';
-    final isLive = normalized == 'live';
-    final label = switch (normalized) {
-      'pending' || '' => 'Pendente',
-      'live' => 'Live',
-      'finished' || 'done' => 'Finalizado',
-      _ => status,
-    };
-    // Same mapping as MatchStatusChip: live, finished (neutral), pending.
-    final color = isLive
-        ? t.live
-        : isFinished
-        ? t.textSecondary
-        : t.pending;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: t.stateFill(color),
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: t.stateBorder(color)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.strong.copyWith(
-          color: isFinished ? t.textPrimary : color,
-        ),
-      ),
-    );
-  }
-}
-
-class _SurfaceMessage extends StatelessWidget {
-  const _SurfaceMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }
@@ -1079,3 +919,24 @@ const _rd32SeedOrder = [
   11,
   22,
 ];
+
+/// Playoff match status as a badge. Same mapping as `MatchStatusChip`:
+/// live, finished (neutral), anything else pending.
+class _MatchupStatusBadge extends StatelessWidget {
+  const _MatchupStatusBadge({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = status.trim().toLowerCase();
+    return switch (normalized) {
+      'live' => const AppBadge(label: 'Live', tone: AppBadgeTone.live),
+      'finished' ||
+      'done' => const AppBadge(label: 'Finalizado', tone: AppBadgeTone.neutral),
+      'pending' ||
+      '' => const AppBadge(label: 'Pendente', tone: AppBadgeTone.pending),
+      _ => AppBadge(label: status, tone: AppBadgeTone.pending),
+    };
+  }
+}

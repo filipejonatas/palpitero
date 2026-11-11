@@ -9,7 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 
 final _loginNotifierProvider = ChangeNotifierProvider.autoDispose
     .family<LoginNotifier, SessionController>(
@@ -227,12 +227,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _showLoginError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: context.tokens.error,
-        content: Text(message, style: TextStyle(color: context.tokens.onLoss)),
-      ),
-    );
+    AppSnackBar.error(context, message);
   }
 }
 
@@ -344,7 +339,13 @@ class _LoginBottomCard extends StatelessWidget {
               style: text.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.xxl),
-            _GoogleSignInButton(
+            AppButton.secondary(
+              label: 'Continuar com o Google',
+              icon: SvgPicture.asset(
+                'assets/images/google_logo.svg',
+                width: 22,
+                height: 22,
+              ),
               isLoading:
                   isLoading && notifier.loadingAction == LoginAction.google,
               onPressed: isLoading ? null : onGoogleSignIn,
@@ -363,20 +364,20 @@ class _LoginBottomCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            TextField(
+            AppTextField(
               controller: emailController,
               enabled: !isLoading,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Email'),
+              hintText: 'Email',
             ),
             const SizedBox(height: AppSpacing.md),
-            TextField(
+            AppTextField(
               controller: passwordController,
               enabled: !isLoading,
               obscureText: true,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(hintText: 'Senha'),
+              hintText: 'Senha',
               onSubmitted: (_) {
                 if (!isLoading) onEmailSignIn();
               },
@@ -391,7 +392,7 @@ class _LoginBottomCard extends StatelessWidget {
               onChanged: isLoading ? null : onCreateAccountChanged,
             ),
             const SizedBox(height: AppSpacing.sm),
-            _EmailSignInButton(
+            AppButton(
               label: createAccount ? 'Criar conta' : 'Entrar com email',
               isLoading:
                   isLoading && notifier.loadingAction == LoginAction.email,
@@ -400,126 +401,6 @@ class _LoginBottomCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             const _TermsText(),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({required this.isLoading, required this.onPressed});
-
-  final bool isLoading;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-
-    return _AuthButton(
-      backgroundColor: t.surfaceElevated,
-      foregroundColor: t.textPrimary,
-      borderColor: t.border,
-      isLoading: isLoading,
-      onPressed: onPressed,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/images/google_logo.svg',
-            width: 22,
-            height: 22,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          const Flexible(
-            child: Text(
-              'Continuar com o Google',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmailSignInButton extends StatelessWidget {
-  const _EmailSignInButton({
-    required this.label,
-    required this.isLoading,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool isLoading;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-
-    return _AuthButton(
-      backgroundColor: t.brand,
-      foregroundColor: t.onBrand,
-      borderColor: t.brand,
-      isLoading: isLoading,
-      onPressed: onPressed,
-      child: Text(label),
-    );
-  }
-}
-
-class _AuthButton extends StatelessWidget {
-  const _AuthButton({
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.borderColor,
-    required this.isLoading,
-    required this.onPressed,
-    required this.child,
-  });
-
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color borderColor;
-  final bool isLoading;
-  final VoidCallback? onPressed;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Material(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          onTap: onPressed,
-          child: Container(
-            height: AppSizes.buttonHeight,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              border: Border.all(color: borderColor),
-            ),
-            child: isLoading
-                ? SizedBox.square(
-                    dimension: AppSizes.spinner,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: foregroundColor,
-                    ),
-                  )
-                : DefaultTextStyle.merge(
-                    style: AppTypography.button.copyWith(
-                      color: foregroundColor,
-                    ),
-                    child: child,
-                  ),
-          ),
         ),
       ),
     );

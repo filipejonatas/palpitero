@@ -6,7 +6,7 @@ import '../models/app_user.dart';
 import '../models/match_prediction.dart';
 import '../services/prediction_service.dart';
 import '../services/session_controller.dart';
-import '../theme/app_theme.dart';
+import '../design_system/design_system.dart';
 import '../utils/match_day_selector.dart';
 import '../widgets/logout_circle_button.dart';
 import '../widgets/match_card.dart';
@@ -45,7 +45,6 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final matchDays = _matchDays;
     final visibleDay = matchDays.isEmpty ? null : matchDays[_dayIndex];
 
@@ -71,48 +70,26 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
             AppSpacing.bottomNavClearance,
           ),
           children: [
-            Text(
-              'Mata-mata',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: context.tokens.brandOnSurface,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text('Seus palpites', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Ajuste o placar de 0 a 9 antes da bola rolar.',
-              style: theme.textTheme.bodyMedium,
+            const AppPageHeader(
+              eyebrow: 'Mata-mata',
+              title: 'Seus palpites',
+              subtitle: 'Ajuste o placar de 0 a 9 antes da bola rolar.',
             ),
             const SizedBox(height: AppSpacing.xl),
             if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xxxl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const AppLoading()
             else ...[
               if (_matches.isEmpty)
-                const _SurfaceMessage(message: 'Nenhum jogo encontrado.')
+                const AppEmptyState(message: 'Nenhum jogo encontrado.')
               else ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _canSaveAll ? _saveAllPredictions : null,
-                    icon: _isSavingAll
-                        ? const SizedBox.square(
-                            dimension: AppSizes.spinner,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : PhosphorIcon(PhosphorIcons.floppyDisk()),
-                    label: Text(
-                      _isSavingAll ? 'Salvando palpites...' : 'Salvar dia',
-                    ),
-                  ),
+                AppButton(
+                  label: _isSavingAll ? 'Salvando palpites...' : 'Salvar dia',
+                  icon: PhosphorIcon(PhosphorIcons.floppyDisk()),
+                  isLoading: _isSavingAll,
+                  onPressed: _canSaveAll ? _saveAllPredictions : null,
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text(visibleDay!.label, style: theme.textTheme.titleMedium),
+                AppSectionHeader(title: visibleDay!.label),
                 const SizedBox(height: AppSpacing.md),
                 for (final match in visibleDay.matches)
                   Padding(
@@ -198,7 +175,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
         _picks.clear();
         _isLoading = false;
       });
-      _showMessage('Nao foi possivel carregar jogos da API.');
+      _showMessage('Nao foi possivel carregar jogos da API.', isError: true);
       debugPrint('Falha ao carregar jogos: $error');
       return;
     }
@@ -208,7 +185,10 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
       predictions = await _predictionService.loadUserPredictions(user);
     } catch (error) {
       debugPrint('Falha ao carregar palpites do usuario: $error');
-      _showMessage('Nao foi possivel carregar seus palpites salvos.');
+      _showMessage(
+        'Nao foi possivel carregar seus palpites salvos.',
+        isError: true,
+      );
     }
 
     if (!mounted) return;
@@ -266,7 +246,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     } catch (error) {
       debugPrint('Falha ao salvar palpite: $error');
       if (!mounted) return;
-      _showMessage('Nao foi possivel salvar o palpite.');
+      _showMessage('Nao foi possivel salvar o palpite.', isError: true);
     } finally {
       if (mounted) {
         setState(() => _savingFixtureId = null);
@@ -305,7 +285,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     } catch (error) {
       debugPrint('Falha ao salvar todos os palpites: $error');
       if (!mounted) return;
-      _showMessage('Nao foi possivel salvar todos os palpites.');
+      _showMessage('Nao foi possivel salvar todos os palpites.', isError: true);
     } finally {
       if (mounted) setState(() => _isSavingAll = false);
     }
@@ -349,12 +329,12 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     };
   }
 
-  void _showMessage(String message) {
+  void _showMessage(String message, {bool isError = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      isError
+          ? AppSnackBar.error(context, message)
+          : AppSnackBar.info(context, message);
     });
   }
 }
@@ -463,21 +443,15 @@ class _PredictionCardState extends State<_PredictionCard> {
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
-          FilledButton.icon(
+          AppButton(
+            label: widget.isSaving
+                ? 'Confirmando...'
+                : hasSavedPrediction
+                ? 'Atualizar palpite'
+                : 'Confirmar palpite',
+            icon: PhosphorIcon(PhosphorIcons.checkCircle()),
+            isLoading: widget.isSaving,
             onPressed: canEdit ? () => widget.onSave(prediction) : null,
-            icon: widget.isSaving
-                ? const SizedBox.square(
-                    dimension: AppSizes.spinner,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : PhosphorIcon(PhosphorIcons.checkCircle()),
-            label: Text(
-              widget.isSaving
-                  ? 'Confirmando...'
-                  : hasSavedPrediction
-                  ? 'Atualizar palpite'
-                  : 'Confirmar palpite',
-            ),
           ),
           if (widget.isLocked) ...[
             const SizedBox(height: AppSpacing.md),
@@ -554,13 +528,8 @@ class _QualifiedPickSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return AppCard.elevated(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: context.tokens.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -621,12 +590,7 @@ class _ScoreStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: context.tokens.surfaceElevated,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+    return AppCard.elevated(
       child: Column(
         children: [
           Text(
@@ -713,14 +677,10 @@ class _MatchDaysPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
@@ -743,24 +703,6 @@ class _MatchDaysPager extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SurfaceMessage extends StatelessWidget {
-  const _SurfaceMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }

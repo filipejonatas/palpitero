@@ -58,6 +58,15 @@ abstract final class AppSizes {
 
   /// Progress indicator inside a button or chip.
   static const spinner = 18.0;
+
+  /// Small inline icon (section header, status row).
+  static const iconSm = 18.0;
+
+  /// Stroke of [spinner].
+  static const spinnerStroke = 2.0;
+
+  /// Width of the drag handle on top of sheets.
+  static const dragHandleWidth = 40.0;
 }
 
 /// Motion durations: short and functional.
